@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KC · Korea Days Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f1117;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #1a1d27;
+    border-bottom: 1px solid #2a2d3a;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header h1 { font-size: 18px; font-weight: 600; color: #fff; }
+  .header .sub { font-size: 13px; color: #666; margin-left: auto; }
+
+  /* ── Main hero ── */
+  .hero {
+    padding: 32px 24px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .status-card {
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .status-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent, #22c55e);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .selected-date-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  .selected-date-display {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+  .selected-date-display .relative-label {
+    font-size: 14px;
+    font-weight: 400;
+    color: #888;
+    margin-left: 10px;
+  }
+
+  .metrics-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 20px;
+    align-items: center;
+  }
+  .metric { }
+  .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #666; margin-bottom: 4px; }
+  .metric-value { font-size: 40px; font-weight: 800; line-height: 1; }
+  .metric-value.days-left { color: var(--accent, #22c55e); }
+  .metric-value.days-used { color: #e0e0e0; }
+  .metric-value.cap { color: #555; }
+
+  .progress-wrap {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+  }
+  .progress-bar-bg {
+    background: #2a2d3a;
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent, #22c55e);
+    transition: width 0.3s ease;
+  }
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--badge-bg, rgba(34,197,94,0.15));
+    color: var(--accent, #22c55e);
+    border: 1px solid var(--accent, #22c55e);
+    white-space: nowrap;
+    align-self: flex-start;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent, #22c55e);
+  }
+
+  /* ── Calendar strip ── */
+  .cal-strip-wrap {
+    position: relative;
+    margin-bottom: 24px;
+    user-select: none;
+  }
+  .cal-strip {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 4px 2px 8px;
+    scrollbar-width: none;
+  }
+  .cal-strip::-webkit-scrollbar { display: none; }
+  .cal-day {
+    flex: 0 0 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 2px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+    background: #1a1d27;
+  }
+  .cal-day:hover { background: #252836; border-color: #3a3d4a; }
+  .cal-day.cal-today { border-color: #3a3d4a; }
+  .cal-day.cal-today .cal-dow { color: #aaa; }
+  .cal-day.cal-selected {
+    background: #252836;
+    border-color: var(--sel-accent, #22c55e);
+  }
+  .cal-day.cal-in-korea { background: rgba(59,130,246,0.07); }
+  .cal-dow {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #555;
+  }
+  .cal-dom {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ccc;
+  }
+  .cal-day.cal-selected .cal-dom { color: #fff; }
+  .cal-day.cal-today .cal-dom { color: #fff; }
+  .cal-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: transparent;
+  }
+  .cal-day.cal-today .cal-dot { background: #555; }
+  .cal-rem {
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .cal-arrow {
+    position: absolute;
+    top: 50%; transform: translateY(-60%);
+    width: 24px; height: 24px;
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 13px; color: #888;
+    z-index: 2;
+    transition: background 0.12s, color 0.12s;
+  }
+  .cal-arrow:hover { background: #2a2d3a; color: #fff; }
+  .cal-arrow-left  { left: -12px; }
+  .cal-arrow-right { right: -12px; }
+  .cal-today-btn {
+    display: block;
+    margin: 6px auto 0;
+    background: none;
+    border: 1px solid #2a2d3a;
+    border-radius: 6px;
+    color: #666;
+    font-size: 11px;
+    padding: 3px 12px;
+    cursor: pointer;
+    transition: color 0.12s, border-color 0.12s;
+  }
+  .cal-today-btn:hover { color: #ccc; border-color: #555; }
+
+  input[type="date"] { display: none; }
+  .divider { display: none; }
+  .jump-btn { display: none; }
+  .controls label { display: none; }
+  .controls { margin-bottom: 0; }
+
+  /* ── Table ── */
+  .table-section { max-width: 1100px; margin: 0 auto; padding: 0 24px 40px; }
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .table-title { font-size: 14px; font-weight: 600; color: #888; }
+
+  .table-wrap {
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table thead th {
+    background: #111318;
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #555;
+    border-bottom: 1px solid #2a2d3a;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .data-table td {
+    padding: 9px 16px;
+    border-bottom: 1px solid #1e2130;
+    vertical-align: middle;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* selected row */
+  .data-table tbody tr.selected-row td {
+    background: rgba(255,255,255,0.05);
+  }
+  .data-table tbody tr.selected-row td:first-child {
+    border-left: 3px solid var(--accent, #22c55e);
+    padding-left: 13px;
+  }
+
+  /* today row */
+  .data-table tbody tr.today-row td { background: rgba(255,255,255,0.03); }
+
+  /* in-korea row */
+  .data-table tbody tr.in-korea td { background: rgba(59,130,246,0.04); }
+
+  .col-date { color: #ccc; font-weight: 500; min-width: 120px; }
+  .col-date .weekday { color: #555; font-weight: 400; font-size: 11px; margin-left: 4px; }
+  .col-relative { color: #666; font-size: 12px; min-width: 90px; }
+  .col-location { min-width: 80px; }
+
+  .location-kr {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(59,130,246,0.15);
+    color: #60a5fa;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px; font-weight: 600;
+  }
+  .location-hk {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(168,85,247,0.12);
+    color: #c084fc;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px; font-weight: 600;
+  }
+  .location-other {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(156,163,175,0.1);
+    color: #9ca3af;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px; font-weight: 600;
+  }
+
+  .col-used { color: #e0e0e0; font-variant-numeric: tabular-nums; min-width: 90px; }
+  .col-left { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 90px; }
+  .col-bar { min-width: 140px; }
+
+  .mini-bar-bg { background: #2a2d3a; border-radius: 999px; height: 6px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 999px; }
+
+  .col-note { color: #666; font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: text; }
+  .col-note:hover { color: #999; }
+  .col-note input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #444;
+    color: #ccc;
+    font-size: 12px;
+    outline: none;
+    width: 100%;
+    padding: 0;
+  }
+
+  /* status colors */
+  .safe   { color: #22c55e; }
+  .warn   { color: #f59e0b; }
+  .danger { color: #f97316; }
+  .critical { color: #ef4444; }
+
+  .bar-safe    { background: #22c55e; }
+  .bar-warn    { background: #f59e0b; }
+  .bar-danger  { background: #f97316; }
+  .bar-critical { background: #ef4444; }
+
+  /* table container scroll */
+  .table-scroll { max-height: 620px; overflow-y: auto; }
+  .table-scroll::-webkit-scrollbar { width: 6px; }
+  .table-scroll::-webkit-scrollbar-track { background: transparent; }
+  .table-scroll::-webkit-scrollbar-thumb { background: #2a2d3a; border-radius: 3px; }
+
+  /* ── Location badge (clickable) ── */
+  .loc-badge {
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.1s, filter 0.1s;
+  }
+  .loc-badge:hover { filter: brightness(1.3); }
+  .loc-badge-empty {
+    display: inline-flex; align-items: center;
+    cursor: pointer;
+    color: #333;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px dashed #2a2d3a;
+    transition: border-color 0.1s, color 0.1s;
+  }
+  .loc-badge-empty:hover { border-color: #555; color: #666; }
+  .override-dot {
+    display: inline-block; width: 5px; height: 5px;
+    border-radius: 50%; background: #f59e0b;
+    margin-left: 4px; vertical-align: middle;
+  }
+
+  /* ── Location picker popup ── */
+  #locPicker {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    background: #1e2130;
+    border: 1px solid #3a3d4a;
+    border-radius: 10px;
+    padding: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    min-width: 160px;
+  }
+  #locPicker.open { display: block; }
+  .picker-title {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #555; padding: 2px 6px 6px; border-bottom: 1px solid #2a2d3a;
+    margin-bottom: 4px;
+  }
+  .picker-opt {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #ccc;
+    transition: background 0.1s;
+  }
+  .picker-opt:hover { background: #2a2d3a; color: #fff; }
+  .picker-opt.active { background: #2a2d3a; color: #fff; font-weight: 600; }
+  .picker-sep { height: 1px; background: #2a2d3a; margin: 4px 0; }
+  .picker-clear { color: #ef4444 !important; }
+  .picker-clear:hover { background: rgba(239,68,68,0.1) !important; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 24px;
+    border-bottom: 1px solid #2a2d3a;
+    background: #1a1d27;
+    max-width: 100%;
+    position: sticky;
+    top: 57px;
+    z-index: 99;
+  }
+  .tab-btn {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #666;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.15s;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: #ccc; }
+  .tab-btn.active { color: #fff; border-bottom-color: #60a5fa; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Trips list ── */
+  .trips-section { max-width: 1100px; margin: 0 auto; padding: 24px 24px 40px; }
+  .trips-year-group { margin-bottom: 32px; }
+  .trips-year-header {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #555;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .trips-year-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #2a2d3a;
+  }
+  .trips-year-total {
+    font-size: 11px;
+    font-weight: 400;
+    color: #444;
+    margin-left: 4px;
+  }
+  .trip-card {
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    transition: border-color 0.15s;
+  }
+  .trip-card:hover { border-color: #3a3d4a; }
+  .trip-card.past { opacity: 0.55; }
+  .trip-card.active-trip {
+    border-color: #3b82f6;
+    background: rgba(59,130,246,0.06);
+  }
+  .trip-card.upcoming { border-color: #2a2d3a; }
+  .trip-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #555;
+    text-align: center;
+  }
+  .trip-body { min-width: 0; }
+  .trip-dates {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ccc;
+    margin-bottom: 3px;
+  }
+  .trip-dates .arrow { color: #444; margin: 0 6px; }
+  .trip-days-badge {
+    display: inline-block;
+    background: rgba(59,130,246,0.15);
+    color: #60a5fa;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 8px;
+  }
+  .trip-note {
+    font-size: 12px;
+    color: #666;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .trip-meta {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .trip-remaining {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .trip-remaining-label {
+    font-size: 10px;
+    color: #555;
+    margin-top: 2px;
+  }
+
+  /* ── Trip edit ── */
+  .trip-edit-icon {
+    display: block; width: 100%; background: none; border: none;
+    cursor: pointer; color: #3a3d4a; font-size: 13px; padding: 3px 0;
+    border-radius: 4px; margin-top: 6px; text-align: center;
+    transition: color 0.1s, background 0.1s;
+  }
+  .trip-card:hover .trip-edit-icon { color: #666; }
+  .trip-edit-icon:hover { color: #aaa !important; background: #2a2d3a; }
+  .trip-card-editing { grid-template-columns: 36px 1fr !important; }
+  .trip-card-editing .trip-meta { display: none; }
+  .trip-edit-form { display: flex; flex-direction: column; gap: 8px; padding: 2px 0; }
+  .trip-edit-dates { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .trip-edit-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
+  .trip-edit-input {
+    background: #0f1117; border: 1px solid #3a3d4a; border-radius: 6px;
+    color: #e0e0e0; padding: 5px 9px; font-size: 13px; outline: none; cursor: pointer;
+  }
+  .trip-edit-input:focus { border-color: #60a5fa; }
+  .trip-edit-note-input {
+    background: #0f1117; border: 1px solid #3a3d4a; border-radius: 6px;
+    color: #e0e0e0; padding: 5px 9px; font-size: 13px; outline: none; width: 100%;
+    font-family: inherit;
+  }
+  .trip-edit-note-input:focus { border-color: #60a5fa; }
+  .trip-edit-actions { display: flex; gap: 6px; align-items: center; }
+  .trip-edit-btn {
+    padding: 5px 12px; border-radius: 6px; border: none;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .trip-save-btn { background: #3b82f6; color: #fff; }
+  .trip-save-btn:hover { background: #2563eb; }
+  .trip-cancel-btn { background: #2a2d3a; color: #aaa; }
+  .trip-cancel-btn:hover { background: #3a3d4a; color: #fff; }
+  .trip-delete-btn { background: rgba(239,68,68,0.12); color: #ef4444; margin-left: auto; }
+  .trip-delete-btn:hover { background: rgba(239,68,68,0.28); }
+  .trips-toolbar {
+    display: flex; justify-content: flex-end; margin-bottom: 16px;
+    padding-bottom: 12px; border-bottom: 1px solid #2a2d3a;
+    position: sticky; top: 103px; z-index: 10;
+    background: #0f1117;
+    padding-top: 12px;
+  }
+  .add-trip-btn {
+    background: none; border: 1px solid #3a3d4a; border-radius: 8px;
+    color: #60a5fa; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .add-trip-btn:hover { background: rgba(59,130,246,0.1); border-color: #3b82f6; }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .metrics-row { grid-template-columns: 1fr 1fr; }
+    .col-bar, .col-note { display: none; }
+    .metric-value { font-size: 32px; }
+    .trip-card { grid-template-columns: 28px 1fr auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Location picker popup -->
+<div id="locPicker">
+  <div class="picker-title" id="pickerTitle">Set location</div>
+  <div class="picker-opt" data-country="KR"><span>🇰🇷</span> Korea</div>
+  <div class="picker-opt" data-country="HK"><span>🏙️</span> Hong Kong</div>
+  <div class="picker-opt" data-country="US"><span>🇺🇸</span> USA</div>
+  <div class="picker-opt" data-country="JP"><span>🇯🇵</span> Japan</div>
+  <div class="picker-opt" data-country="TH"><span>🇹🇭</span> Thailand</div>
+  <div class="picker-opt" data-country="OTHER"><span>✈️</span> Other</div>
+  <div class="picker-sep"></div>
+  <div class="picker-opt picker-clear" data-country="CLEAR">✕ Clear override</div>
+</div>
+
+<div class="header">
+  <span style="font-size:22px">🇰🇷</span>
+  <h1>Korea Days Tracker</h1>
+  <span class="sub">182-day rolling cap · Trailing 365 days</span>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('daily', this)">📅 Daily View</button>
+  <button class="tab-btn" onclick="switchTab('trips', this)">✈️ Business Trips</button>
+</div>
+
+<div id="panel-daily" class="tab-panel active">
+<div class="hero">
+  <div class="controls">
+    <input type="date" id="datePicker">
+  </div>
+  <div class="cal-strip-wrap">
+    <div class="cal-arrow cal-arrow-left" onclick="calScroll(-1)">‹</div>
+    <div class="cal-strip" id="calStrip"></div>
+    <div class="cal-arrow cal-arrow-right" onclick="calScroll(1)">›</div>
+  </div>
+  <button class="cal-today-btn" onclick="calGoToday()">Today</button>
+
+  <div class="status-card" id="statusCard">
+    <div class="selected-date-label">Trailing 365-day window ending</div>
+    <div class="selected-date-display" id="heroDate">–</div>
+    <div class="metrics-row">
+      <div class="metric">
+        <div class="metric-label">Days Remaining</div>
+        <div class="metric-value days-left" id="heroDaysLeft">–</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Days Used</div>
+        <div class="metric-value days-used" id="heroDaysUsed">–</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Cap</div>
+        <div class="metric-value cap">182</div>
+      </div>
+      <div class="status-badge" id="heroBadge">
+        <div class="status-dot"></div>
+        <span id="heroBadgeText">–</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="heroBar" style="width:0%"></div>
+        </div>
+        <div class="progress-labels">
+          <span>0</span>
+          <span id="progressLabel">0 / 182</span>
+          <span>182</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="table-section">
+  <div class="table-header">
+    <span class="table-title" id="tableTitle">Daily breakdown</span>
+  </div>
+  <div class="table-wrap">
+    <div class="table-scroll" id="tableScroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Relative</th>
+            <th>Location</th>
+            <th>Used (trailing 365d)</th>
+            <th>Remaining</th>
+            <th>Usage</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #panel-daily -->
+
+<div id="panel-trips" class="tab-panel">
+  <div class="trips-section" id="tripsSection"></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA: all Korea trips — single source of truth (editable, persisted)
+// ─────────────────────────────────────────────
+const HARDCODED_TRIPS = [
+  // 2021
+  {year:2021, num:1, entry:'2021-03-10', dep:'2021-06-17', note:''},
+  {year:2021, num:2, entry:'2021-11-03', dep:'2021-12-02', note:''},
+  // 2022
+  {year:2022, num:1, entry:'2022-02-20', dep:'2022-06-05', note:''},
+  {year:2022, num:2, entry:'2022-06-13', dep:'2022-06-28', note:''},
+  {year:2022, num:3, entry:'2022-10-01', dep:'2022-10-23', note:''},
+  {year:2022, num:4, entry:'2022-11-07', dep:'2022-11-13', note:''},
+  {year:2022, num:5, entry:'2022-11-15', dep:'2022-11-19', note:''},
+  {year:2022, num:6, entry:'2022-12-13', dep:'2022-12-25', note:''},
+  // 2023
+  {year:2023, num:1,  entry:'2023-02-05', dep:'2023-02-16', note:''},
+  {year:2023, num:2,  entry:'2023-03-07', dep:'2023-03-22', note:''},
+  {year:2023, num:3,  entry:'2023-03-27', dep:'2023-04-07', note:''},
+  {year:2023, num:4,  entry:'2023-04-23', dep:'2023-04-28', note:''},
+  {year:2023, num:5,  entry:'2023-05-17', dep:'2023-05-27', note:''},
+  {year:2023, num:6,  entry:'2023-06-05', dep:'2023-06-10', note:'Ad-hoc trip for AP II roadshow with Matt on 6/7-6/9'},
+  {year:2023, num:7,  entry:'2023-06-19', dep:'2023-07-02', note:'Chris Roadshow 6/20-6/21, PDI Asia Conference on 6/26'},
+  {year:2023, num:8,  entry:'2023-07-14', dep:'2023-08-05', note:'Final push for AP II, GA 2023'},
+  {year:2023, num:9,  entry:'2023-08-23', dep:'2023-09-06', note:'The week after GA Reset week'},
+  {year:2023, num:10, entry:'2023-09-13', dep:'2023-09-27', note:'Return to HK early due to Harvest Moon Festival'},
+  {year:2023, num:11, entry:'2023-10-10', dep:'2023-10-20', note:''},
+  {year:2023, num:12, entry:'2023-10-30', dep:'2023-11-10', note:'LS roadshow with Brett on Oct 30-31'},
+  {year:2023, num:13, entry:'2023-11-28', dep:'2023-12-07', note:''},
+  {year:2023, num:14, entry:'2023-12-18', dep:'2023-12-26', note:''},
+  // 2024
+  {year:2024, num:1,  entry:'2024-01-30', dep:'2024-02-08', note:''},
+  {year:2024, num:2,  entry:'2024-02-19', dep:'2024-02-24', note:'KAL 뉴욕 가기 전 1주 한국 방문'},
+  {year:2024, num:3,  entry:'2024-03-11', dep:'2024-03-22', note:''},
+  {year:2024, num:4,  entry:'2024-04-01', dep:'2024-04-11', note:'3/29-4/7 식구들 한국'},
+  {year:2024, num:5,  entry:'2024-04-29', dep:'2024-05-08', note:'5/9 원이 생일'},
+  {year:2024, num:6,  entry:'2024-05-19', dep:'2024-05-31', note:'5/19-5/20 Bill & Chris in Korea · 5/21-5/22 ASK Conference'},
+  {year:2024, num:7,  entry:'2024-06-17', dep:'2024-07-05', note:''},
+  {year:2024, num:8,  entry:'2024-07-10', dep:'2024-07-19', note:''},
+  {year:2024, num:9,  entry:'2024-08-26', dep:'2024-09-06', note:''},
+  {year:2024, num:10, entry:'2024-09-23', dep:'2024-10-03', note:''},
+  {year:2024, num:11, entry:'2024-10-14', dep:'2024-10-25', note:'Oct 16 ASK Conference · Tanzeen roadshow · Oct 23 Lance'},
+  {year:2024, num:12, entry:'2024-11-04', dep:'2024-11-16', note:'Nov 5-6 Whitman Roadshow'},
+  {year:2024, num:13, entry:'2024-11-25', dep:'2024-12-06', note:''},
+  {year:2024, num:14, entry:'2024-12-13', dep:'2024-12-24', note:''},
+  // 2025
+  {year:2025, num:1,  entry:'2025-01-16', dep:'2025-01-24', note:''},
+  {year:2025, num:2,  entry:'2025-02-10', dep:'2025-02-19', note:'한국 → Miami → SF'},
+  {year:2025, num:3,  entry:'2025-03-10', dep:'2025-03-14', note:''},
+  {year:2025, num:4,  entry:'2025-03-17', dep:'2025-03-21', note:''},
+  {year:2025, num:5,  entry:'2025-03-24', dep:'2025-03-28', note:''},
+  {year:2025, num:6,  entry:'2025-03-31', dep:'2025-04-11', note:'4/8-4/9 Martin Roadshow · 4/9 Seminar'},
+  {year:2025, num:7,  entry:'2025-04-27', dep:'2025-04-30', note:''},
+  {year:2025, num:8,  entry:'2025-05-12', dep:'2025-05-16', note:''},
+  {year:2025, num:9,  entry:'2025-05-19', dep:'2025-05-23', note:'5/21-5/22 ASK'},
+  {year:2025, num:10, entry:'2025-05-26', dep:'2025-05-30', note:''},
+  {year:2025, num:11, entry:'2025-06-16', dep:'2025-06-27', note:'6/24 PDI Korea'},
+  {year:2025, num:12, entry:'2025-06-30', dep:'2025-07-04', note:''},
+  {year:2025, num:13, entry:'2025-07-07', dep:'2025-07-11', note:''},
+  {year:2025, num:14, entry:'2025-07-14', dep:'2025-07-17', note:'7/18 Mid-year lunch with PJF'},
+  {year:2025, num:15, entry:'2025-07-22', dep:'2025-08-02', note:''},
+  {year:2025, num:16, entry:'2025-08-25', dep:'2025-08-29', note:''},
+  {year:2025, num:17, entry:'2025-09-02', dep:'2025-09-06', note:'9/5 장인어른 칠순'},
+  {year:2025, num:18, entry:'2025-09-10', dep:'2025-09-12', note:'9/10 HKMA Green Week · 9/12 AVCJ Korea'},
+  {year:2025, num:19, entry:'2025-09-22', dep:'2025-09-25', note:'9/23-9/24 Ben Roadshow'},
+  {year:2025, num:20, entry:'2025-09-29', dep:'2025-10-01', note:''},
+  {year:2025, num:21, entry:'2025-10-14', dep:'2025-10-16', note:''},
+  {year:2025, num:22, entry:'2025-10-20', dep:'2025-10-24', note:'10/21-10/22 Matt Roadshow'},
+  {year:2025, num:23, entry:'2025-10-27', dep:'2025-10-31', note:'10/29-10/30 ASK'},
+  {year:2025, num:24, entry:'2025-11-03', dep:'2025-11-06', note:'11/3 KIS 김규하 팀장'},
+  {year:2025, num:25, entry:'2025-11-10', dep:'2025-11-13', note:'11/12 Peddie'},
+  {year:2025, num:26, entry:'2025-12-01', dep:'2025-12-05', note:''},
+  {year:2025, num:27, entry:'2025-12-09', dep:'2025-12-12', note:''},
+  {year:2025, num:28, entry:'2025-12-15', dep:'2025-12-20', note:''},
+  {year:2025, num:29, entry:'2025-12-30', dep:'2026-01-02', note:'신정(새해) · 건강검진'},
+  // 2026
+  {year:2026, num:1,  entry:'2026-01-02', dep:'2026-01-09', note:''},
+  {year:2026, num:2,  entry:'2026-01-12', dep:'2026-01-16', note:''},
+  {year:2026, num:3,  entry:'2026-01-19', dep:'2026-01-23', note:''},
+  {year:2026, num:4,  entry:'2026-02-02', dep:'2026-02-06', note:''},
+  {year:2026, num:5,  entry:'2026-02-09', dep:'2026-02-12', note:''},
+  {year:2026, num:6,  entry:'2026-02-23', dep:'2026-02-27', note:''},
+  {year:2026, num:7,  entry:'2026-03-09', dep:'2026-03-14', note:'Sean Roadshow 3/10-3/11'},
+  {year:2026, num:8,  entry:'2026-03-16', dep:'2026-03-19', note:'3/20 HKIS Parent Teacher'},
+  {year:2026, num:9,  entry:'2026-03-30', dep:'2026-04-03', note:''},
+  {year:2026, num:10, entry:'2026-04-20', dep:'2026-04-24', note:''},
+  {year:2026, num:11, entry:'2026-05-06', dep:'2026-05-08', note:'5/7 Bill Korea roadshow'},
+  {year:2026, num:12, entry:'2026-05-11', dep:'2026-05-15', note:''},
+  {year:2026, num:13, entry:'2026-05-26', dep:'2026-05-29', note:'부처님오신날 연휴'},
+  {year:2026, num:14, entry:'2026-06-08', dep:'2026-06-12', note:'현충일'},
+  {year:2026, num:15, entry:'2026-06-15', dep:'2026-06-19', note:''},
+  {year:2026, num:16, entry:'2026-06-22', dep:'2026-06-26', note:''},
+  {year:2026, num:17, entry:'2026-07-06', dep:'2026-07-10', note:''},
+  {year:2026, num:18, entry:'2026-07-13', dep:'2026-07-17', note:'GA Onsite in NY??'},
+  {year:2026, num:19, entry:'2026-07-20', dep:'2026-07-24', note:''},
+  {year:2026, num:20, entry:'2026-07-27', dep:'2026-07-31', note:''},
+  {year:2026, num:21, entry:'2026-08-10', dep:'2026-08-14', note:''},
+  {year:2026, num:22, entry:'2026-08-24', dep:'2026-08-28', note:''},
+  {year:2026, num:23, entry:'2026-09-07', dep:'2026-09-11', note:''},
+  {year:2026, num:24, entry:'2026-09-14', dep:'2026-09-18', note:''},
+  {year:2026, num:25, entry:'2026-09-28', dep:'2026-10-02', note:''},
+  {year:2026, num:26, entry:'2026-10-12', dep:'2026-10-16', note:''},
+  {year:2026, num:27, entry:'2026-10-19', dep:'2026-10-23', note:''},
+  {year:2026, num:28, entry:'2026-10-26', dep:'2026-10-30', note:''},
+  {year:2026, num:29, entry:'2026-11-09', dep:'2026-11-13', note:''},
+  {year:2026, num:30, entry:'2026-11-16', dep:'2026-11-20', note:''},
+  {year:2026, num:31, entry:'2026-11-23', dep:'2026-11-27', note:''},
+  {year:2026, num:32, entry:'2026-12-07', dep:'2026-12-11', note:''},
+  {year:2026, num:33, entry:'2026-12-14', dep:'2026-12-18', note:''},
+  {year:2026, num:34, entry:'2026-12-21', dep:'2026-12-23', note:'크리스마스'},
+];
+
+// Non-KR trip context (for location display)
+const OTHER_TRIPS = [
+  // 2025
+  {entry:"2025-02-19", dep:"2025-03-01", country:"US", note:"NY/Miami/SF"},
+  {entry:"2025-04-14", dep:"2025-04-17", country:"US", note:"AGM & NY trip"},
+  {entry:"2025-04-14", dep:"2025-04-16", country:"TH", note:"Chiangmai"},
+  {entry:"2025-05-06", dep:"2025-05-09", country:"HK", note:"1st week HK"},
+  {entry:"2025-06-01", dep:"2025-06-06", country:"US", note:"Lina Life onsite"},
+  {entry:"2025-06-09", dep:"2025-06-13", country:"HK", note:"1st week HK"},
+  {entry:"2025-12-20", dep:"2025-12-30", country:"JP", note:"Japan holiday"},
+  // 2026
+  {entry:"2026-01-26", dep:"2026-01-30", country:"HK", note:"Asia PE Forum"},
+  {entry:"2026-02-16", dep:"2026-02-20", country:"HK", note:"설연휴"},
+  {entry:"2026-03-02", dep:"2026-03-06", country:"HK", note:"1st wk / 삼일절"},
+  {entry:"2026-03-23", dep:"2026-03-27", country:"HK", note:"근우,지영 HK"},
+  {entry:"2026-04-06", dep:"2026-04-10", country:"HK", note:"Easter Holiday"},
+  {entry:"2026-04-13", dep:"2026-04-17", country:"US", note:"AGM & NY trip"},
+  {entry:"2026-04-27", dep:"2026-05-01", country:"HK", note:"1st wk HK"},
+  {entry:"2026-06-01", dep:"2026-06-05", country:"HK", note:"1st wk HK"},
+  {entry:"2026-06-29", dep:"2026-07-03", country:"HK", note:"1st wk HK"},
+  {entry:"2026-08-03", dep:"2026-08-07", country:"HK", note:"1st wk HK"},
+  {entry:"2026-08-17", dep:"2026-08-21", country:"HK", note:"GA Reset Week"},
+  {entry:"2026-08-31", dep:"2026-09-04", country:"HK", note:"1st wk HK"},
+  {entry:"2026-09-21", dep:"2026-09-25", country:"HK", note:"추석 연휴"},
+  {entry:"2026-10-05", dep:"2026-10-09", country:"HK", note:"1st wk/개천절"},
+  {entry:"2026-11-02", dep:"2026-11-06", country:"HK", note:"1st wk HK"},
+  {entry:"2026-11-30", dep:"2026-12-04", country:"HK", note:"1st wk HK"},
+  {entry:"2026-12-28", dep:"2027-01-01", country:"HK", note:"Skip / HK"},
+];
+
+// ─────────────────────────────────────────────
+// Build day sets
+// ─────────────────────────────────────────────
+function dateToNum(d) {
+  // Returns days since epoch (integer), timezone-safe
+  const [y, m, day] = d.split('-').map(Number);
+  return Date.UTC(y, m - 1, day) / 86400000;
+}
+function numToDateStr(n) {
+  const d = new Date(n * 86400000);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function todayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// Mutable trip data — loaded from server, falls back to hardcoded defaults until server responds
+let TRIPS = HARDCODED_TRIPS.map(t => ({...t}));
+
+// Derived lookup structures (rebuilt from TRIPS whenever trips are edited)
+let KR_TRIPS_NUMS = [];
+const KR_DAY_SET  = new Set();
+const LOCATION_MAP = new Map();
+
+// Inline init (same logic as rebuildFromTrips(), defined later after computeAllRows)
+KR_TRIPS_NUMS = TRIPS.map(t => ({s: dateToNum(t.entry), e: dateToNum(t.dep)}));
+KR_DAY_SET.clear();
+for (const t of KR_TRIPS_NUMS) for (let d = t.s; d <= t.e; d++) KR_DAY_SET.add(d);
+LOCATION_MAP.clear();
+for (const t of OTHER_TRIPS) {
+  const s = dateToNum(t.entry), e = dateToNum(t.dep);
+  for (let d = s; d <= e; d++) if (!LOCATION_MAP.has(d)) LOCATION_MAP.set(d, {country: t.country, note: t.note});
+}
+for (const t of KR_TRIPS_NUMS) for (let d = t.s; d <= t.e; d++) LOCATION_MAP.set(d, {country: 'KR', note: ''});
+
+// Count Korea days in trailing window ending on dayNum.
+// Matches spreadsheet exactly: window = [dayNum-365, dayNum], sums per-trip overlap.
+// (This intentionally double-counts Jan 2 2026 which spans two trips, matching the source.)
+// Overrides: if a day is overridden, it adds/removes from the base trip-overlap count.
+function countKrDays(dayNum) {
+  const winStart = dayNum - 365;
+  let count = 0;
+  for (const t of KR_TRIPS_NUMS) {
+    const ovStart = Math.max(t.s, winStart);
+    const ovEnd   = Math.min(t.e, dayNum);
+    if (ovStart <= ovEnd) count += ovEnd - ovStart + 1;
+  }
+  // Apply day overrides: adjust count for each overridden day in window
+  for (const [ds, country] of DAY_OVERRIDES) {
+    const dn = dateToNum(ds);
+    if (dn < winStart || dn > dayNum) continue;
+    const wasKr  = KR_DAY_SET.has(dn);
+    const isKrNow = (country === 'KR');
+    if (isKrNow && !wasKr) count++;
+    else if (!isKrNow && wasKr) count--;
+  }
+  return count;
+}
+
+// ─────────────────────────────────────────────
+// Day overrides (persisted to server)
+// ─────────────────────────────────────────────
+const DAY_OVERRIDES = new Map();
+
+function saveToServer() {
+  fetch('/api/korea-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ trips: TRIPS, overrides: [...DAY_OVERRIDES] }),
+  }).catch(err => console.error('Save failed:', err));
+}
+
+function saveOverrides() {
+  saveToServer();
+}
+
+function getEffectiveLocation(dayNum) {
+  const ds = numToDateStr(dayNum);
+  if (DAY_OVERRIDES.has(ds)) return {country: DAY_OVERRIDES.get(ds), note: '✏️ edited', overridden: true};
+  const loc = LOCATION_MAP.get(dayNum) || null;
+  return loc ? {...loc, overridden: false} : null;
+}
+
+function isEffectiveKr(dayNum) {
+  const ds = numToDateStr(dayNum);
+  if (DAY_OVERRIDES.has(ds)) return DAY_OVERRIDES.get(ds) === 'KR';
+  return KR_DAY_SET.has(dayNum);
+}
+
+// ─────────────────────────────────────────────
+// Status helpers
+// ─────────────────────────────────────────────
+const CAP = 182;
+
+function lerpColor(a, b, t) {
+  // a, b = [r,g,b]; t = 0..1
+  const r = Math.round(a[0] + (b[0]-a[0]) * t);
+  const g = Math.round(a[1] + (b[1]-a[1]) * t);
+  const bl = Math.round(a[2] + (b[2]-a[2]) * t);
+  return `rgb(${r},${g},${bl})`;
+}
+const C_GREEN  = [34, 197, 94];   // #22c55e  ≥20
+const C_AMBER  = [245, 158, 11];  // #f59e0b  10
+const C_ORANGE = [249, 115, 22];  // #f97316  5
+const C_RED    = [239, 68, 68];   // #ef4444  <5
+function gradientColor(remaining) {
+  if (remaining >= 20) return lerpColor(C_GREEN, C_GREEN, 0);
+  if (remaining >= 10) { const t = 1 - (remaining - 10) / 10; return lerpColor(C_GREEN, C_AMBER, t); }
+  if (remaining >= 5)  { const t = 1 - (remaining - 5) / 5;   return lerpColor(C_AMBER, C_ORANGE, t); }
+  const t = Math.min(1, (5 - remaining) / 5);  return lerpColor(C_ORANGE, C_RED, t);
+}
+function getStatus(remaining) {
+  const accent = gradientColor(remaining);
+  const text = remaining >= 20 ? 'Safe' : remaining >= 10 ? 'Caution' : remaining >= 5 ? 'Warning' : 'Critical!';
+  return {cls:'', bar:'', text, accent};
+}
+
+function formatDateLong(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.toLocaleDateString('en-GB', {weekday:'long', year:'numeric', month:'long', day:'numeric', timeZone:'UTC'});
+}
+function formatDateShort(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.toLocaleDateString('en-GB', {weekday:'short', day:'2-digit', month:'short', year:'numeric', timeZone:'UTC'});
+}
+function getWeekday(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {weekday:'short', timeZone:'UTC'});
+}
+
+function relativeLabel(dateStr, todayNum) {
+  const n = dateToNum(dateStr);
+  const diff = n - todayNum;
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  if (diff === -1) return 'Yesterday';
+  if (diff > 0) return `+${diff}d`;
+  return `${diff}d`;
+}
+
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+let selectedDate = todayStr();
+const TODAY_STR = todayStr();
+const TODAY_NUM = dateToNum(TODAY_STR);
+
+// Table range: 365 days before first KR trip to end of 2026
+const TABLE_START_NUM = dateToNum('2021-03-10') - 7;
+const TABLE_END_NUM   = dateToNum('2026-12-31');
+
+// (Re)compute all rows — called on init and after any override change
+function computeAllRows() {
+  allRows = [];
+  for (let d = TABLE_START_NUM; d <= TABLE_END_NUM; d++) {
+    const ds = numToDateStr(d);
+    const used = countKrDays(d);
+    const left = CAP - used;
+    const loc  = getEffectiveLocation(d);
+    const isKr = isEffectiveKr(d);
+    allRows.push({dayNum: d, dateStr: ds, used, left, loc, isKr});
+  }
+}
+let allRows = [];
+computeAllRows();
+
+// ─────────────────────────────────────────────
+// Location badge + picker
+// ─────────────────────────────────────────────
+const LOC_META = {
+  KR:    {cls:'location-kr',    icon:'🇰🇷', label:'KR'},
+  HK:    {cls:'location-hk',    icon:'🏙️',  label:'HK'},
+  US:    {cls:'location-other', icon:'🇺🇸', label:'US'},
+  JP:    {cls:'location-other', icon:'🇯🇵', label:'JP'},
+  TH:    {cls:'location-other', icon:'🇹🇭', label:'TH'},
+  OTHER: {cls:'location-other', icon:'✈️',  label:'Other'},
+};
+
+function makeLocBadge(loc, dateStr) {
+  const ovDot = (loc && loc.overridden) ? '<span class="override-dot" title="Manually overridden"></span>' : '';
+  if (!loc) {
+    return `<span class="loc-badge-empty" title="Click to set location">+</span>`;
+  }
+  const m = LOC_META[loc.country] || {cls:'location-other', icon:'', label: loc.country};
+  return `<span class="loc-badge ${m.cls}" title="Click to change">${m.icon} ${m.label}${ovDot}</span>`;
+}
+
+let pickerTargetDate = null;
+
+function openPicker(dateStr, cell) {
+  pickerTargetDate = dateStr;
+  const picker = document.getElementById('locPicker');
+  document.getElementById('pickerTitle').textContent = dateStr;
+
+  // Mark active option
+  const currentOverride = DAY_OVERRIDES.get(dateStr);
+  const currentCountry  = currentOverride || (LOCATION_MAP.get(dateToNum(dateStr)) || {}).country;
+  picker.querySelectorAll('.picker-opt[data-country]').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.country === currentCountry);
+  });
+
+  // Position near cell (fixed = viewport-relative, no scroll offset needed)
+  const rect = cell.getBoundingClientRect();
+  const top = rect.bottom + 6;
+  // Flip above if too close to bottom
+  const pickerH = 230;
+  picker.style.top  = (top + pickerH > window.innerHeight ? rect.top - pickerH - 4 : top) + 'px';
+  picker.style.left = Math.min(rect.left, window.innerWidth - 180) + 'px';
+  picker.classList.add('open');
+}
+
+function closePicker() {
+  document.getElementById('locPicker').classList.remove('open');
+  pickerTargetDate = null;
+}
+
+document.getElementById('locPicker').addEventListener('click', e => {
+  const opt = e.target.closest('.picker-opt[data-country]');
+  if (!opt || !pickerTargetDate) return;
+  const country = opt.dataset.country;
+  if (country === 'CLEAR') {
+    DAY_OVERRIDES.delete(pickerTargetDate);
+  } else {
+    DAY_OVERRIDES.set(pickerTargetDate, country);
+  }
+  saveOverrides();
+  closePicker();
+  // Recompute and re-render
+  computeAllRows();
+  renderHero(selectedDate);
+  buildTable();
+  // Re-highlight without scroll reset
+  highlightSelected();
+});
+
+// Close picker on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('#locPicker') && !e.target.closest('.col-location')) closePicker();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePicker(); });
+
+// ─────────────────────────────────────────────
+// Render
+// ─────────────────────────────────────────────
+function renderHero(dateStr) {
+  const n = dateToNum(dateStr);
+  const used = countKrDays(n);
+  const left = CAP - used;
+  const pct = Math.min(100, (used / CAP) * 100);
+  const st = getStatus(left);
+
+  document.getElementById('heroDate').innerHTML =
+    formatDateLong(dateStr) +
+    `<span class="relative-label">${relativeLabel(dateStr, TODAY_NUM)}</span>`;
+  document.getElementById('heroDaysLeft').textContent = left;
+  document.getElementById('heroDaysUsed').textContent = used;
+  document.getElementById('heroBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${used} / ${CAP}`;
+
+  const card = document.getElementById('statusCard');
+  card.style.setProperty('--accent', st.accent);
+
+  const badge = document.getElementById('heroBadge');
+  badge.style.setProperty('--accent', st.accent);
+  badge.style.setProperty('--badge-bg', st.accent + '22');
+  badge.querySelector('.status-dot').style.background = st.accent;
+  document.getElementById('heroBadgeText').textContent = st.text;
+
+  document.getElementById('heroDaysLeft').className = 'metric-value days-left';
+  document.getElementById('heroDaysLeft').style.color = st.accent;
+}
+
+function getTripForDate(dateStr) {
+  const n = dateToNum(dateStr);
+  return TRIPS.find(t => dateToNum(t.entry) <= n && dateToNum(t.dep) >= n) || null;
+}
+
+function buildTable() {
+  const tbody = document.getElementById('tableBody');
+  const frag = document.createDocumentFragment();
+
+  for (const row of allRows) {
+    const tr = document.createElement('tr');
+    const st = getStatus(row.left);
+    const pct = Math.min(100, (row.used / CAP) * 100);
+    const relLabel = relativeLabel(row.dateStr, TODAY_NUM);
+
+    if (row.dateStr === selectedDate) tr.classList.add('selected-row');
+    if (row.dateStr === TODAY_STR)    tr.classList.add('today-row');
+    if (row.isKr)                     tr.classList.add('in-korea');
+
+    tr.dataset.date = row.dateStr;
+    tr.style.cursor = 'pointer';
+
+    const locHTML = makeLocBadge(row.loc, row.dateStr);
+    const trip = getTripForDate(row.dateStr);
+    const note = trip ? (trip.note || '') : '';
+
+    tr.innerHTML = `
+      <td class="col-date">${row.dateStr}<span class="weekday">${getWeekday(row.dateStr)}</span></td>
+      <td class="col-relative">${relLabel}</td>
+      <td class="col-location" data-date="${row.dateStr}">${locHTML}</td>
+      <td class="col-used">${row.used}</td>
+      <td class="col-left" style="color:${st.accent}">${row.left}</td>
+      <td class="col-bar">
+        <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct.toFixed(1)}%;background:${st.accent}"></div></div>
+      </td>
+      <td class="col-note" data-date="${row.dateStr}">${note}</td>
+    `;
+    // Row click → select date (but not if clicking location or note)
+    tr.addEventListener('click', e => {
+      if (e.target.closest('.col-location')) return;
+      if (e.target.closest('.col-note')) return;
+      selectDate(row.dateStr);
+    });
+    // Location cell click → open picker
+    tr.querySelector('.col-location').addEventListener('click', e => {
+      e.stopPropagation();
+      openPicker(row.dateStr, e.currentTarget);
+    });
+    // Note cell click → inline edit
+    tr.querySelector('.col-note').addEventListener('click', e => {
+      e.stopPropagation();
+      const td = e.currentTarget;
+      if (td.querySelector('input')) return;
+      const trip = getTripForDate(td.dataset.date);
+      if (!trip) return;
+      const cur = trip.note || '';
+      td.innerHTML = `<input type="text" value="${cur.replace(/"/g,'&quot;')}" placeholder="Note...">`;
+      const inp = td.querySelector('input');
+      inp.focus();
+      inp.select();
+      const finish = () => {
+        trip.note = inp.value;
+        saveTRIPS();
+        buildTripsPanel && tripsBuilt && buildTripsPanel();
+        td.textContent = trip.note;
+      };
+      inp.addEventListener('blur', finish);
+      inp.addEventListener('keydown', e2 => {
+        if (e2.key === 'Enter') inp.blur();
+        if (e2.key === 'Escape') { td.textContent = cur; }
+      });
+    });
+    frag.appendChild(tr);
+  }
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+}
+
+function scrollToSelected() {
+  const row = document.querySelector('tr[data-date="' + selectedDate + '"]');
+  if (row) {
+    const scroll = document.getElementById('tableScroll');
+    const rowTop = row.offsetTop;
+    const scrollTop = rowTop - scroll.clientHeight / 2 + row.clientHeight / 2;
+    scroll.scrollTop = Math.max(0, scrollTop);
+  }
+}
+
+function highlightSelected() {
+  document.querySelectorAll('.data-table tbody tr').forEach(tr => {
+    tr.classList.remove('selected-row');
+    if (tr.dataset.date === selectedDate) tr.classList.add('selected-row');
+  });
+}
+
+function selectDate(dateStr) {
+  selectedDate = dateStr;
+  document.getElementById('datePicker').value = dateStr;
+  renderHero(dateStr);
+  highlightSelected();
+  scrollToSelected();
+}
+
+function jumpDays(n) {
+  const num = dateToNum(selectedDate) + n;
+  selectDate(numToDateStr(num));
+}
+function jumpToToday() { selectDate(TODAY_STR); }
+
+// ─────────────────────────────────────────────
+// Calendar strip
+// ─────────────────────────────────────────────
+const CAL_RANGE = 30;   // days each side of anchor
+let calAnchorNum = TODAY_NUM;  // the center of the strip
+
+function buildCalStrip() {
+  const strip = document.getElementById('calStrip');
+  strip.innerHTML = '';
+  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const selNum = dateToNum(selectedDate);
+  const accent = gradientColor(CAP - countKrDays(selNum));
+
+  // update CSS variable for selected border
+  strip.parentElement.style.setProperty('--sel-accent', accent);
+
+  for (let offset = -CAL_RANGE; offset <= CAL_RANGE; offset++) {
+    const num = calAnchorNum + offset;
+    const ds  = numToDateStr(num);
+    const d   = new Date(ds + 'T00:00:00');
+    const dow  = DOW[d.getDay()];
+    const dom  = d.getDate();
+
+    const isToday    = ds === TODAY_STR;
+    const isSelected = ds === selectedDate;
+    const isKorea    = KR_DAY_SET.has(num);
+
+    const div = document.createElement('div');
+    div.className = 'cal-day' +
+      (isToday    ? ' cal-today'    : '') +
+      (isSelected ? ' cal-selected' : '') +
+      (isKorea    ? ' cal-in-korea' : '');
+    div.dataset.ds = ds;
+
+    if (isSelected) {
+      div.style.borderColor = accent;
+      div.style.boxShadow   = `0 0 0 1px ${accent}33`;
+    }
+
+    const dowEl = document.createElement('div');
+    dowEl.className = 'cal-dow';
+    dowEl.textContent = dow;
+    if (isToday) dowEl.style.color = '#fff';
+
+    const domEl = document.createElement('div');
+    domEl.className = 'cal-dom';
+    domEl.textContent = dom;
+
+    const remaining = CAP - countKrDays(num);
+    const remColor  = gradientColor(remaining);
+    const remEl = document.createElement('div');
+    remEl.className = 'cal-rem';
+    remEl.textContent = remaining;
+    remEl.style.color = remColor;
+
+    const dotEl = document.createElement('div');
+    dotEl.className = 'cal-dot';
+    if (isSelected) { dotEl.style.background = accent; }
+    else if (isKorea) { dotEl.style.background = '#3b82f6'; }
+    else if (isToday) { dotEl.style.background = '#555'; }
+
+    div.appendChild(dowEl);
+    div.appendChild(domEl);
+    div.appendChild(remEl);
+    div.appendChild(dotEl);
+    div.addEventListener('click', () => selectDate(ds));
+    strip.appendChild(div);
+  }
+
+  // scroll so the selected day is centered in the visible strip
+  const selIdx = selNum - calAnchorNum + CAL_RANGE;
+  const CELL_W = 40; // 34px + 6px gap
+  const stripW = strip.clientWidth;
+  strip.scrollLeft = selIdx * CELL_W - stripW / 2 + CELL_W / 2;
+}
+
+function calScroll(dir) {
+  calAnchorNum += dir * 15;
+  buildCalStrip();
+}
+
+function calGoToday() {
+  calAnchorNum = TODAY_NUM;
+  selectDate(TODAY_STR);
+}
+
+// Patch selectDate to also refresh the strip
+const _origSelectDate = selectDate;
+selectDate = function(dateStr) {
+  _origSelectDate(dateStr);
+  // if selected date is outside current strip range, re-anchor on it
+  const selNum = dateToNum(dateStr);
+  if (Math.abs(selNum - calAnchorNum) > CAL_RANGE - 3) {
+    calAnchorNum = selNum;
+  }
+  buildCalStrip();
+};
+
+// ─────────────────────────────────────────────
+// Init — load data from server, then render
+// ─────────────────────────────────────────────
+document.getElementById('datePicker').value = TODAY_STR;
+document.getElementById('datePicker').addEventListener('change', e => {
+  if (e.target.value) selectDate(e.target.value);
+});
+
+function initRender() {
+  document.getElementById('tableTitle').textContent =
+    `All days · ${allRows.length.toLocaleString()} rows · click any row to select`;
+  renderHero(selectedDate);
+  buildTable();
+  scrollToSelected();
+  buildCalStrip();
+}
+
+// Load saved data from server
+fetch('/api/korea-data')
+  .then(r => r.json())
+  .then(data => {
+    if (data.trips && data.trips.length > 0) {
+      TRIPS.length = 0;
+      TRIPS.push(...data.trips);
+    }
+    if (data.overrides && data.overrides.length > 0) {
+      for (const [k, v] of data.overrides) DAY_OVERRIDES.set(k, v);
+    }
+    rebuildFromTrips();
+    initRender();
+  })
+  .catch(() => {
+    // Server not reachable — render with hardcoded defaults
+    initRender();
+  });
+
+// ─────────────────────────────────────────────
+// Trip data persistence + rebuild
+// ─────────────────────────────────────────────
+function saveTRIPS() {
+  saveToServer();
+}
+
+function renumberTrips() {
+  TRIPS.sort((a, b) => a.entry < b.entry ? -1 : a.entry > b.entry ? 1 : 0);
+  const counts = {};
+  for (const t of TRIPS) {
+    t.year = parseInt(t.entry.slice(0, 4));
+    counts[t.year] = (counts[t.year] || 0) + 1;
+    t.num = counts[t.year];
+  }
+}
+
+function rebuildFromTrips() {
+  KR_TRIPS_NUMS = TRIPS.map(t => ({s: dateToNum(t.entry), e: dateToNum(t.dep)}));
+  KR_DAY_SET.clear();
+  for (const t of KR_TRIPS_NUMS) for (let d = t.s; d <= t.e; d++) KR_DAY_SET.add(d);
+  LOCATION_MAP.clear();
+  for (const t of OTHER_TRIPS) {
+    const s = dateToNum(t.entry), e = dateToNum(t.dep);
+    for (let d = s; d <= e; d++) if (!LOCATION_MAP.has(d)) LOCATION_MAP.set(d, {country: t.country, note: t.note});
+  }
+  for (const t of KR_TRIPS_NUMS) for (let d = t.s; d <= t.e; d++) LOCATION_MAP.set(d, {country: 'KR', note: ''});
+  computeAllRows();
+  renderHero(selectedDate);
+  buildTable();
+}
+
+// ─────────────────────────────────────────────
+// Trip edit state + CRUD
+// ─────────────────────────────────────────────
+let editingTripIdx = -1;
+let editingIsNew   = false;
+
+function editTrip(idx) {
+  editingTripIdx = idx;
+  editingIsNew   = false;
+  buildTripsPanel();
+}
+
+function cancelEdit() {
+  if (editingIsNew) {
+    TRIPS.splice(editingTripIdx, 1);
+    renumberTrips();
+    editingIsNew = false;
+  }
+  editingTripIdx = -1;
+  buildTripsPanel();
+}
+
+function saveTrip(idx) {
+  const entry = document.getElementById('edit-entry').value;
+  const dep   = document.getElementById('edit-dep').value;
+  const note  = document.getElementById('edit-note').value.trim();
+  if (!entry || !dep || entry > dep) {
+    alert('Entry date must be ≤ departure date.');
+    return;
+  }
+  TRIPS[idx].entry = entry;
+  TRIPS[idx].dep   = dep;
+  TRIPS[idx].note  = note;
+  editingIsNew   = false;
+  editingTripIdx = -1;
+  renumberTrips();
+  saveTRIPS();
+  rebuildFromTrips();
+  buildTripsPanel();
+}
+
+function deleteTrip(idx) {
+  if (!confirm('Delete this trip?')) return;
+  TRIPS.splice(idx, 1);
+  renumberTrips();
+  saveTRIPS();
+  editingTripIdx = -1;
+  editingIsNew   = false;
+  rebuildFromTrips();
+  buildTripsPanel();
+}
+
+function addTrip() {
+  const newTrip = { year: parseInt(TODAY_STR.slice(0,4)), num: 0, entry: TODAY_STR, dep: TODAY_STR, note: '' };
+  TRIPS.push(newTrip);
+  renumberTrips();
+  editingTripIdx = TRIPS.indexOf(newTrip);
+  editingIsNew   = true;
+  buildTripsPanel();
+  setTimeout(() => {
+    const el = document.querySelector('.trip-card-editing');
+    if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 60);
+}
+
+function scrollTripsToToday() {
+  // Find the trip that is active (spans today) or the next upcoming trip
+  const sorted = [...TRIPS].sort((a, b) => a.entry < b.entry ? -1 : 1);
+  let target = sorted.find(t => dateToNum(t.entry) <= TODAY_NUM && dateToNum(t.dep) >= TODAY_NUM);
+  if (!target) target = sorted.find(t => dateToNum(t.entry) > TODAY_NUM);
+  if (!target) target = sorted[sorted.length - 1]; // fall back to most recent
+  if (!target) return;
+  const idx = TRIPS.indexOf(target);
+  const el = document.querySelector(`.trip-card[data-trip-idx="${idx}"]`);
+  if (el) el.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+
+// ─────────────────────────────────────────────
+// Trips panel render
+// ─────────────────────────────────────────────
+// (legacy KR_TRIP_LIST — no longer used, kept to avoid reference errors during migration)
+const KR_TRIP_LIST = [
+  {year:2023, num:1, entry:'2023-02-05', dep:'2023-02-16', days:12, note:''},
+  {year:2023, num:2, entry:'2023-03-07', dep:'2023-03-22', days:16, note:''},
+  {year:2023, num:3, entry:'2023-03-27', dep:'2023-04-07', days:12, note:''},
+  {year:2023, num:4, entry:'2023-04-23', dep:'2023-04-28', days:6, note:''},
+  {year:2023, num:5, entry:'2023-05-17', dep:'2023-05-27', days:11, note:''},
+  {year:2023, num:6, entry:'2023-06-05', dep:'2023-06-10', days:6, note:'Ad-hoc trip for AP II roadshow with Matt on 6/7-6/9'},
+  {year:2023, num:7, entry:'2023-06-19', dep:'2023-07-02', days:14, note:'Chris Roadshow 6/20-6/21, PDI Asia Conference on 6/26'},
+  {year:2023, num:8, entry:'2023-07-14', dep:'2023-08-05', days:23, note:'Final push for AP II, GA 2023'},
+  {year:2023, num:9, entry:'2023-08-23', dep:'2023-09-06', days:15, note:'The week after GA Reset week'},
+  {year:2023, num:10, entry:'2023-09-13', dep:'2023-09-27', days:15, note:'Return to HK early due to Harvest Moon Festival'},
+  {year:2023, num:11, entry:'2023-10-10', dep:'2023-10-20', days:11, note:''},
+  {year:2023, num:12, entry:'2023-10-30', dep:'2023-11-10', days:12, note:'LS roadshow with Brett on Oct 30-31'},
+  {year:2023, num:13, entry:'2023-11-28', dep:'2023-12-07', days:10, note:''},
+  {year:2023, num:14, entry:'2023-12-18', dep:'2023-12-26', days:9, note:''},
+  {year:2024, num:1, entry:'2024-01-30', dep:'2024-02-08', days:10, note:''},
+  {year:2024, num:2, entry:'2024-02-19', dep:'2024-02-24', days:6, note:'KAL 뉴욕 가기 전 1주 한국 방문'},
+  {year:2024, num:3, entry:'2024-03-11', dep:'2024-03-22', days:12, note:''},
+  {year:2024, num:4, entry:'2024-04-01', dep:'2024-04-11', days:11, note:'3/29-4/7 식구들 한국'},
+  {year:2024, num:5, entry:'2024-04-29', dep:'2024-05-08', days:10, note:'5/9 원이 생일'},
+  {year:2024, num:6, entry:'2024-05-19', dep:'2024-05-31', days:13, note:'5/19-5/20 Bill & Chris in Korea · 5/21-5/22 ASK Conference'},
+  {year:2024, num:7, entry:'2024-06-17', dep:'2024-07-05', days:19, note:''},
+  {year:2024, num:8, entry:'2024-07-10', dep:'2024-07-19', days:10, note:''},
+  {year:2024, num:9, entry:'2024-08-26', dep:'2024-09-06', days:12, note:''},
+  {year:2024, num:10, entry:'2024-09-23', dep:'2024-10-03', days:11, note:''},
+  {year:2024, num:11, entry:'2024-10-14', dep:'2024-10-25', days:12, note:'Oct 16 ASK Conference · Tanzeen roadshow · Oct 23 Lance'},
+  {year:2024, num:12, entry:'2024-11-04', dep:'2024-11-16', days:13, note:'Nov 5-6 Whitman Roadshow'},
+  {year:2024, num:13, entry:'2024-11-25', dep:'2024-12-06', days:12, note:''},
+  {year:2024, num:14, entry:'2024-12-13', dep:'2024-12-24', days:12, note:''},
+  {year:2025, num:1, entry:'2025-01-16', dep:'2025-01-24', days:9, note:''},
+  {year:2025, num:2, entry:'2025-02-10', dep:'2025-02-19', days:10, note:'한국 → Miami → SF'},
+  {year:2025, num:3, entry:'2025-03-10', dep:'2025-03-14', days:5, note:''},
+  {year:2025, num:4, entry:'2025-03-17', dep:'2025-03-21', days:5, note:''},
+  {year:2025, num:5, entry:'2025-03-24', dep:'2025-03-28', days:5, note:''},
+  {year:2025, num:6, entry:'2025-03-31', dep:'2025-04-11', days:12, note:'4/8-4/9 Martin Roadshow · 4/9 Seminar'},
+  {year:2025, num:7, entry:'2025-04-27', dep:'2025-04-30', days:4, note:''},
+  {year:2025, num:8, entry:'2025-05-12', dep:'2025-05-16', days:5, note:''},
+  {year:2025, num:9, entry:'2025-05-19', dep:'2025-05-23', days:5, note:'5/21-5/22 ASK'},
+  {year:2025, num:10, entry:'2025-05-26', dep:'2025-05-30', days:5, note:''},
+  {year:2025, num:11, entry:'2025-06-16', dep:'2025-06-27', days:12, note:'6/24 PDI Korea'},
+  {year:2025, num:12, entry:'2025-06-30', dep:'2025-07-04', days:5, note:''},
+  {year:2025, num:13, entry:'2025-07-07', dep:'2025-07-11', days:5, note:''},
+  {year:2025, num:14, entry:'2025-07-14', dep:'2025-07-17', days:4, note:'7/18 Mid-year lunch with PJF'},
+  {year:2025, num:15, entry:'2025-07-22', dep:'2025-08-02', days:12, note:''},
+  {year:2025, num:16, entry:'2025-08-25', dep:'2025-08-29', days:5, note:''},
+  {year:2025, num:17, entry:'2025-09-02', dep:'2025-09-06', days:5, note:'9/5 장인어른 칠순'},
+  {year:2025, num:18, entry:'2025-09-10', dep:'2025-09-12', days:3, note:'9/10 HKMA Green Week · 9/12 AVCJ Korea'},
+  {year:2025, num:19, entry:'2025-09-22', dep:'2025-09-25', days:4, note:'9/23-9/24 Ben Roadshow'},
+  {year:2025, num:20, entry:'2025-09-29', dep:'2025-10-01', days:3, note:''},
+  {year:2025, num:21, entry:'2025-10-14', dep:'2025-10-16', days:3, note:''},
+  {year:2025, num:22, entry:'2025-10-20', dep:'2025-10-24', days:5, note:'10/21-10/22 Matt Roadshow'},
+  {year:2025, num:23, entry:'2025-10-27', dep:'2025-10-31', days:5, note:'10/29-10/30 ASK'},
+  {year:2025, num:24, entry:'2025-11-03', dep:'2025-11-06', days:4, note:'11/3 KIS 김규하 팀장'},
+  {year:2025, num:25, entry:'2025-11-10', dep:'2025-11-13', days:4, note:'11/12 Peddie'},
+  {year:2025, num:26, entry:'2025-12-01', dep:'2025-12-05', days:5, note:''},
+  {year:2025, num:27, entry:'2025-12-09', dep:'2025-12-12', days:4, note:''},
+  {year:2025, num:28, entry:'2025-12-15', dep:'2025-12-20', days:6, note:''},
+  {year:2025, num:29, entry:'2025-12-30', dep:'2026-01-02', days:4, note:'신정(새해) · 건강검진'},
+  {year:2026, num:1, entry:'2026-01-02', dep:'2026-01-09', days:8, note:''},
+  {year:2026, num:2, entry:'2026-01-12', dep:'2026-01-16', days:5, note:''},
+  {year:2026, num:3, entry:'2026-01-19', dep:'2026-01-23', days:5, note:''},
+  {year:2026, num:4, entry:'2026-02-02', dep:'2026-02-06', days:5, note:''},
+  {year:2026, num:5, entry:'2026-02-09', dep:'2026-02-12', days:4, note:''},
+  {year:2026, num:6, entry:'2026-02-23', dep:'2026-02-27', days:5, note:''},
+  {year:2026, num:7, entry:'2026-03-09', dep:'2026-03-14', days:6, note:'Sean Roadshow 3/10-3/11'},
+  {year:2026, num:8, entry:'2026-03-16', dep:'2026-03-19', days:4, note:'3/20 HKIS Parent Teacher'},
+  {year:2026, num:9, entry:'2026-03-30', dep:'2026-04-03', days:5, note:''},
+  {year:2026, num:10, entry:'2026-04-20', dep:'2026-04-24', days:5, note:''},
+  {year:2026, num:11, entry:'2026-05-06', dep:'2026-05-08', days:3, note:'5/7 Bill Korea roadshow'},
+  {year:2026, num:12, entry:'2026-05-11', dep:'2026-05-15', days:5, note:''},
+  {year:2026, num:13, entry:'2026-05-26', dep:'2026-05-29', days:4, note:'부처님오신날 연휴'},
+  {year:2026, num:14, entry:'2026-06-08', dep:'2026-06-12', days:5, note:'현충일'},
+  {year:2026, num:15, entry:'2026-06-15', dep:'2026-06-19', days:5, note:''},
+  {year:2026, num:16, entry:'2026-06-22', dep:'2026-06-26', days:5, note:''},
+  {year:2026, num:17, entry:'2026-07-06', dep:'2026-07-10', days:5, note:''},
+  {year:2026, num:18, entry:'2026-07-13', dep:'2026-07-17', days:5, note:'GA Onsite in NY??'},
+  {year:2026, num:19, entry:'2026-07-20', dep:'2026-07-24', days:5, note:''},
+  {year:2026, num:20, entry:'2026-07-27', dep:'2026-07-31', days:5, note:''},
+  {year:2026, num:21, entry:'2026-08-10', dep:'2026-08-14', days:5, note:''},
+  {year:2026, num:22, entry:'2026-08-24', dep:'2026-08-28', days:5, note:''},
+  {year:2026, num:23, entry:'2026-09-07', dep:'2026-09-11', days:5, note:''},
+  {year:2026, num:24, entry:'2026-09-14', dep:'2026-09-18', days:5, note:''},
+  {year:2026, num:25, entry:'2026-09-28', dep:'2026-10-02', days:5, note:''},
+  {year:2026, num:26, entry:'2026-10-12', dep:'2026-10-16', days:5, note:''},
+  {year:2026, num:27, entry:'2026-10-19', dep:'2026-10-23', days:5, note:''},
+  {year:2026, num:28, entry:'2026-10-26', dep:'2026-10-30', days:5, note:''},
+  {year:2026, num:29, entry:'2026-11-09', dep:'2026-11-13', days:5, note:''},
+  {year:2026, num:30, entry:'2026-11-16', dep:'2026-11-20', days:5, note:''},
+  {year:2026, num:31, entry:'2026-11-23', dep:'2026-11-27', days:5, note:''},
+  {year:2026, num:32, entry:'2026-12-07', dep:'2026-12-11', days:5, note:''},
+  {year:2026, num:33, entry:'2026-12-14', dep:'2026-12-18', days:5, note:''},
+  {year:2026, num:34, entry:'2026-12-21', dep:'2026-12-23', days:3, note:'크리스마스'},
+];
+
+function formatShort(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.toLocaleDateString('en-GB', {day:'numeric', month:'short', timeZone:'UTC'});
+}
+
+function buildTripsPanel() {
+  const container = document.getElementById('tripsSection');
+  const years = [...new Set(TRIPS.map(t => t.year))].sort((a,b) => b - a);
+
+  let html = `<div class="trips-toolbar">
+    <button class="add-trip-btn" style="margin-right:auto;background:none;color:#666;border-color:#2a2d3a;font-weight:400" onclick="scrollTripsToToday()">Today</button>
+    <button class="add-trip-btn" onclick="addTrip()">＋ Add Trip</button>
+  </div>`;
+
+  for (const year of years) {
+    const yearTrips = TRIPS.filter(t => t.year === year);
+    const totalDays = yearTrips.reduce((s, t) => s + dateToNum(t.dep) - dateToNum(t.entry) + 1, 0);
+    html += `<div class="trips-year-group">
+      <div class="trips-year-header">${year} <span class="trips-year-total">${yearTrips.length} trips · ${totalDays} days</span></div>`;
+
+    for (const t of [...yearTrips].reverse()) {
+      const idx      = TRIPS.indexOf(t);
+      const depNum   = dateToNum(t.dep);
+      const entryNum = dateToNum(t.entry);
+      const days     = depNum - entryNum + 1;
+
+      if (idx === editingTripIdx) {
+        // ── Edit form ──
+        html += `<div class="trip-card trip-card-editing">
+          <div class="trip-num">#${t.num}</div>
+          <div class="trip-edit-form">
+            <div class="trip-edit-dates">
+              <span class="trip-edit-label">Entry</span>
+              <input type="date" class="trip-edit-input" id="edit-entry" value="${t.entry}">
+              <span class="trip-edit-label">Departure</span>
+              <input type="date" class="trip-edit-input" id="edit-dep" value="${t.dep}">
+            </div>
+            <input type="text" class="trip-edit-note-input" id="edit-note" placeholder="Note..." value="${(t.note||'').replace(/"/g,'&quot;')}">
+            <div class="trip-edit-actions">
+              <button class="trip-edit-btn trip-save-btn" onclick="saveTrip(${idx})">Save</button>
+              <button class="trip-edit-btn trip-cancel-btn" onclick="cancelEdit()">Cancel</button>
+              <button class="trip-edit-btn trip-delete-btn" onclick="deleteTrip(${idx})">Delete</button>
+            </div>
+          </div>
+        </div>`;
+      } else {
+        // ── Display card ──
+        const remaining = CAP - countKrDays(depNum);
+        let cls = depNum < TODAY_NUM ? 'past' : (entryNum <= TODAY_NUM ? 'active-trip' : 'upcoming');
+        const st = getStatus(remaining);
+        const noteHtml = t.note ? `<div class="trip-note">${t.note}</div>` : '';
+
+        html += `<div class="trip-card ${cls}" data-trip-idx="${idx}">
+          <div class="trip-num">#${t.num}</div>
+          <div class="trip-body">
+            <div class="trip-dates">
+              ${formatShort(t.entry)} <span class="arrow">→</span> ${formatShort(t.dep)}
+              <span class="trip-days-badge">${days}d</span>
+            </div>
+            ${noteHtml}
+          </div>
+          <div class="trip-meta">
+            <div class="trip-remaining" style="color:${st.accent}">${remaining}</div>
+            <div class="trip-remaining-label">left at dep.</div>
+            <button class="trip-edit-icon" onclick="jumpToTripInDaily('${t.entry}')" title="View in Daily">📅</button>
+            <button class="trip-edit-icon" onclick="editTrip(${idx})" title="Edit trip">✏️</button>
+          </div>
+        </div>`;
+      }
+    }
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+
+// ─────────────────────────────────────────────
+// Tab switching
+// ─────────────────────────────────────────────
+let tripsBuilt = false;
+function jumpToTripInDaily(entryDate) {
+  const dailyBtn = document.querySelector('.tab-btn[onclick*="daily"]');
+  switchTab('daily', dailyBtn);
+  selectDate(entryDate);
+  scrollToSelected();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'trips') {
+    // Reset any in-progress unsaved add when switching away and back
+    if (editingIsNew) { TRIPS.splice(editingTripIdx, 1); renumberTrips(); editingIsNew = false; editingTripIdx = -1; }
+    buildTripsPanel();
+    tripsBuilt = true;
+  }
+}
+</script>
+</body>
+</html>

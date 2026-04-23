@@ -1,0 +1,12 @@
+{
+  "name": "korea-days",
+  "version": "1.0.0",
+  "description": "Korea Days Tracker — 182-day rolling cap",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
