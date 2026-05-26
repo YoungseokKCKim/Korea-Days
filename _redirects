@@ -1,0 +1,5 @@
+# Cloudflare Pages rewrite — old server.js had a hardcoded root-to-app
+# mapping (url === '/' ? '/korea-days.html' : url). Pages defaults to
+# serving index.html, which this repo doesn't have, so we rewrite '/' to
+# the actual entry file. Status 200 = rewrite (URL stays as '/').
+/ /korea-days.html 200

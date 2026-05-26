@@ -43,6 +43,9 @@
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
+    display: flex;
+    gap: 0;
+    align-items: stretch;
   }
   .status-card::before {
     content: '';
@@ -51,6 +54,40 @@
     height: 3px;
     background: var(--accent, #22c55e);
     border-radius: 16px 16px 0 0;
+  }
+  .status-left {
+    flex: 1;
+    min-width: 0;
+    padding-right: 28px;
+  }
+  .status-right {
+    flex: 1;
+    min-width: 0;
+    border-left: 1px solid #2a2d3a;
+    padding-left: 28px;
+    display: flex;
+    flex-direction: column;
+  }
+  .danger-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  .danger-summary {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 10px;
+  }
+  .danger-summary strong { color: #f59e0b; }
+  .danger-clear {
+    font-size: 14px;
+    color: #22c55e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
   }
 
   .selected-date-label {
@@ -82,9 +119,9 @@
   .metric { }
   .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #666; margin-bottom: 4px; }
   .metric-value { font-size: 40px; font-weight: 800; line-height: 1; }
-  .metric-value.days-left { color: var(--accent, #22c55e); }
-  .metric-value.days-used { color: #e0e0e0; }
-  .metric-value.cap { color: #555; }
+  .metric-value.days-left { color: var(--accent, #22c55e); font-size: 72px; }
+  .metric-value.days-used { color: #555; font-size: 28px; font-weight: 500; }
+  .metric-value.cap { color: #444; font-size: 28px; font-weight: 500; }
 
   .progress-wrap {
     grid-column: 1 / -1;
@@ -146,11 +183,11 @@
   }
   .cal-strip::-webkit-scrollbar { display: none; }
   .cal-day {
-    flex: 0 0 34px;
+    flex: 0 0 44px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 3px;
     padding: 6px 2px;
     border-radius: 8px;
     border: 1px solid transparent;
@@ -187,9 +224,13 @@
   }
   .cal-day.cal-today .cal-dot { background: #555; }
   .cal-rem {
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 800;
     line-height: 1;
+    border-radius: 5px;
+    padding: 2px 5px;
+    color: #000;
+    margin-top: 1px;
   }
   .cal-arrow {
     position: absolute;
@@ -221,7 +262,7 @@
   }
   .cal-today-btn:hover { color: #ccc; border-color: #555; }
 
-  input[type="date"] { display: none; }
+  .controls input[type="date"] { display: none; }
   .divider { display: none; }
   .jump-btn { display: none; }
   .controls label { display: none; }
@@ -439,6 +480,40 @@
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
+  /* ── Stats panel ── */
+  .stats-section { max-width: 900px; margin: 0 auto; padding: 32px 24px 60px; }
+  .stats-year-block { margin-bottom: 40px; }
+  .stats-year-title {
+    font-size: 22px; font-weight: 800; color: #fff;
+    margin-bottom: 6px; display: flex; align-items: baseline; gap: 12px;
+  }
+  .stats-year-total { font-size: 13px; font-weight: 400; color: #555; }
+  .stats-bar-wrap {
+    height: 36px; border-radius: 10px; overflow: hidden;
+    display: flex; margin: 14px 0 16px;
+    background: #1a1d27; border: 1px solid #2a2d3a;
+  }
+  .stats-bar-seg {
+    height: 100%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #000; white-space: nowrap;
+    overflow: hidden; transition: width 0.4s ease;
+    min-width: 0;
+  }
+  .stats-bar-seg.seg-label-hide { color: transparent; }
+  .stats-legend {
+    display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 4px;
+  }
+  .stats-legend-item {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; color: #ccc;
+  }
+  .stats-legend-dot {
+    width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
+  }
+  .stats-legend-days { font-weight: 700; color: #fff; }
+  .stats-legend-pct { color: #666; font-size: 12px; }
+  .stats-divider { border: none; border-top: 1px solid #2a2d3a; margin: 8px 0 32px; }
+
   /* ── Trips list ── */
   .trips-section { max-width: 1100px; margin: 0 auto; padding: 24px 24px 40px; }
   .trips-year-group { margin-bottom: 32px; }
@@ -596,9 +671,13 @@
   <div class="picker-title" id="pickerTitle">Set location</div>
   <div class="picker-opt" data-country="KR"><span>🇰🇷</span> Korea</div>
   <div class="picker-opt" data-country="HK"><span>🏙️</span> Hong Kong</div>
-  <div class="picker-opt" data-country="US"><span>🇺🇸</span> USA</div>
+  <div class="picker-opt" data-country="MO"><span>🇲🇴</span> Macau</div>
+  <div class="picker-opt" data-country="CN"><span>🇨🇳</span> China</div>
   <div class="picker-opt" data-country="JP"><span>🇯🇵</span> Japan</div>
   <div class="picker-opt" data-country="TH"><span>🇹🇭</span> Thailand</div>
+  <div class="picker-opt" data-country="PH"><span>🇵🇭</span> Philippines</div>
+  <div class="picker-opt" data-country="US"><span>🇺🇸</span> USA</div>
+  <div class="picker-opt" data-country="UK"><span>🇬🇧</span> UK</div>
   <div class="picker-opt" data-country="OTHER"><span>✈️</span> Other</div>
   <div class="picker-sep"></div>
   <div class="picker-opt picker-clear" data-country="CLEAR">✕ Clear override</div>
@@ -613,6 +692,7 @@
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('daily', this)">📅 Daily View</button>
   <button class="tab-btn" onclick="switchTab('trips', this)">✈️ Business Trips</button>
+  <button class="tab-btn" onclick="switchTab('stats', this)">📊 Annual Stats</button>
 </div>
 
 <div id="panel-daily" class="tab-panel active">
@@ -628,42 +708,49 @@
   <button class="cal-today-btn" onclick="calGoToday()">Today</button>
 
   <div class="status-card" id="statusCard">
-    <div class="selected-date-label">Trailing 365-day window ending</div>
-    <div class="selected-date-display" id="heroDate">–</div>
-    <div class="metrics-row">
-      <div class="metric">
-        <div class="metric-label">Days Remaining</div>
-        <div class="metric-value days-left" id="heroDaysLeft">–</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Days Used</div>
-        <div class="metric-value days-used" id="heroDaysUsed">–</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Cap</div>
-        <div class="metric-value cap">182</div>
-      </div>
-      <div class="status-badge" id="heroBadge">
-        <div class="status-dot"></div>
-        <span id="heroBadgeText">–</span>
-      </div>
-      <div class="progress-wrap">
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" id="heroBar" style="width:0%"></div>
+    <div class="status-left">
+      <div class="selected-date-label">Trailing 365-day window ending</div>
+      <div class="selected-date-display" id="heroDate">–</div>
+      <div class="metrics-row">
+        <div class="metric">
+          <div class="metric-label">Days Remaining</div>
+          <div class="metric-value days-left" id="heroDaysLeft">–</div>
         </div>
-        <div class="progress-labels">
-          <span>0</span>
-          <span id="progressLabel">0 / 182</span>
-          <span>182</span>
+        <div class="metric">
+          <div class="metric-label">Days Used</div>
+          <div class="metric-value days-used" id="heroDaysUsed">–</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Cap</div>
+          <div class="metric-value cap">182</div>
+        </div>
+        <div class="status-badge" id="heroBadge">
+          <div class="status-dot"></div>
+          <span id="heroBadgeText">–</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="heroBar" style="width:0%"></div>
+          </div>
+          <div class="progress-labels">
+            <span>0</span>
+            <span id="progressLabel">0 / 182</span>
+            <span>182</span>
+          </div>
         </div>
       </div>
     </div>
+    <div class="status-right" id="dangerPanel"></div>
   </div>
 </div>
 
 <div class="table-section">
   <div class="table-header">
     <span class="table-title" id="tableTitle">Daily breakdown</span>
+    <div style="display:flex;gap:4px;">
+      <button id="viewDailyBtn" onclick="setViewMode('daily')" style="padding:4px 12px;border-radius:6px;border:1px solid #3b82f6;background:#3b82f6;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Daily</button>
+      <button id="viewWeeklyBtn" onclick="setViewMode('weekly')" style="padding:4px 12px;border-radius:6px;border:1px solid #2a2d3a;background:none;color:#666;font-size:12px;font-weight:600;cursor:pointer;">Weekly</button>
+    </div>
   </div>
   <div class="table-wrap">
     <div class="table-scroll" id="tableScroll">
@@ -689,6 +776,10 @@
 
 <div id="panel-trips" class="tab-panel">
   <div class="trips-section" id="tripsSection"></div>
+</div>
+
+<div id="panel-stats" class="tab-panel">
+  <div class="stats-section" id="statsSection"></div>
 </div>
 
 <script>
@@ -900,15 +991,16 @@ function countKrDays(dayNum) {
 }
 
 // ─────────────────────────────────────────────
-// Day overrides (persisted to server)
+// Day overrides + day notes (persisted to server)
 // ─────────────────────────────────────────────
 const DAY_OVERRIDES = new Map();
+const DAY_NOTES = new Map();  // dateStr → note string
 
 function saveToServer() {
   fetch('/api/korea-data', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ trips: TRIPS, overrides: [...DAY_OVERRIDES] }),
+    body: JSON.stringify({ trips: TRIPS, overrides: [...DAY_OVERRIDES], day_notes: [...DAY_NOTES] }),
   }).catch(err => console.error('Save failed:', err));
 }
 
@@ -1014,9 +1106,13 @@ computeAllRows();
 const LOC_META = {
   KR:    {cls:'location-kr',    icon:'🇰🇷', label:'KR'},
   HK:    {cls:'location-hk',    icon:'🏙️',  label:'HK'},
-  US:    {cls:'location-other', icon:'🇺🇸', label:'US'},
+  MO:    {cls:'location-other', icon:'🇲🇴', label:'Macau'},
+  CN:    {cls:'location-other', icon:'🇨🇳', label:'China'},
   JP:    {cls:'location-other', icon:'🇯🇵', label:'JP'},
   TH:    {cls:'location-other', icon:'🇹🇭', label:'TH'},
+  PH:    {cls:'location-other', icon:'🇵🇭', label:'PH'},
+  US:    {cls:'location-other', icon:'🇺🇸', label:'US'},
+  UK:    {cls:'location-other', icon:'🇬🇧', label:'UK'},
   OTHER: {cls:'location-other', icon:'✈️',  label:'Other'},
 };
 
@@ -1137,8 +1233,7 @@ function buildTable() {
     tr.style.cursor = 'pointer';
 
     const locHTML = makeLocBadge(row.loc, row.dateStr);
-    const trip = getTripForDate(row.dateStr);
-    const note = trip ? (trip.note || '') : '';
+    const dayNote = DAY_NOTES.get(row.dateStr) || '';
 
     tr.innerHTML = `
       <td class="col-date">${row.dateStr}<span class="weekday">${getWeekday(row.dateStr)}</span></td>
@@ -1149,7 +1244,7 @@ function buildTable() {
       <td class="col-bar">
         <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct.toFixed(1)}%;background:${st.accent}"></div></div>
       </td>
-      <td class="col-note" data-date="${row.dateStr}">${note}</td>
+      <td class="col-note" data-date="${row.dateStr}">${dayNote}</td>
     `;
     // Row click → select date (but not if clicking location or note)
     tr.addEventListener('click', e => {
@@ -1162,23 +1257,23 @@ function buildTable() {
       e.stopPropagation();
       openPicker(row.dateStr, e.currentTarget);
     });
-    // Note cell click → inline edit
+    // Note cell click → inline edit (any date)
     tr.querySelector('.col-note').addEventListener('click', e => {
       e.stopPropagation();
       const td = e.currentTarget;
       if (td.querySelector('input')) return;
-      const trip = getTripForDate(td.dataset.date);
-      if (!trip) return;
-      const cur = trip.note || '';
-      td.innerHTML = `<input type="text" value="${cur.replace(/"/g,'&quot;')}" placeholder="Note...">`;
+      const ds = td.dataset.date;
+      const cur = DAY_NOTES.get(ds) || '';
+      td.innerHTML = `<input type="text" value="${cur.replace(/"/g,'&quot;')}" placeholder="Add note...">`;
       const inp = td.querySelector('input');
       inp.focus();
       inp.select();
       const finish = () => {
-        trip.note = inp.value;
-        saveTRIPS();
-        buildTripsPanel && tripsBuilt && buildTripsPanel();
-        td.textContent = trip.note;
+        const val = inp.value.trim();
+        if (val) DAY_NOTES.set(ds, val);
+        else DAY_NOTES.delete(ds);
+        saveToServer();
+        td.textContent = val;
       };
       inp.addEventListener('blur', finish);
       inp.addEventListener('keydown', e2 => {
@@ -1190,6 +1285,98 @@ function buildTable() {
   }
   tbody.innerHTML = '';
   tbody.appendChild(frag);
+}
+
+// ─────────────────────────────────────────────
+// Weekly view
+// ─────────────────────────────────────────────
+let viewMode = 'daily';
+
+function setViewMode(mode) {
+  viewMode = mode;
+  document.getElementById('viewDailyBtn').style.background  = mode === 'daily'  ? '#3b82f6' : 'none';
+  document.getElementById('viewDailyBtn').style.color       = mode === 'daily'  ? '#fff'    : '#666';
+  document.getElementById('viewDailyBtn').style.borderColor = mode === 'daily'  ? '#3b82f6' : '#2a2d3a';
+  document.getElementById('viewWeeklyBtn').style.background  = mode === 'weekly' ? '#3b82f6' : 'none';
+  document.getElementById('viewWeeklyBtn').style.color       = mode === 'weekly' ? '#fff'    : '#666';
+  document.getElementById('viewWeeklyBtn').style.borderColor = mode === 'weekly' ? '#3b82f6' : '#2a2d3a';
+  if (mode === 'daily') {
+    buildTable();
+    scrollToSelected();
+  } else {
+    buildWeeklyTable();
+  }
+}
+
+function buildWeeklyTable() {
+  const tbody = document.getElementById('tableBody');
+  const frag = document.createDocumentFragment();
+
+  // Group allRows into weeks (Mon–Sun)
+  const weeks = [];
+  let week = null;
+  for (const row of allRows) {
+    const d = new Date(row.dateStr + 'T00:00:00');
+    const dow = d.getDay(); // 0=Sun,1=Mon,...,6=Sat
+    const isMonday = dow === 1;
+    if (!week || isMonday) {
+      week = { rows: [] };
+      weeks.push(week);
+    }
+    week.rows.push(row);
+  }
+
+  const DOW_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  for (const wk of weeks) {
+    const first = wk.rows[0];
+    const last  = wk.rows[wk.rows.length - 1];
+    const krDays = wk.rows.filter(r => r.isKr).length;
+    const minLeft = Math.min(...wk.rows.map(r => r.left));
+    const maxUsed = Math.max(...wk.rows.map(r => r.used));
+    const pct = Math.min(100, (maxUsed / CAP) * 100);
+    const st = getStatus(minLeft);
+    const containsToday = wk.rows.some(r => r.dateStr === TODAY_STR);
+    const containsSelected = wk.rows.some(r => r.dateStr === selectedDate);
+    const firstD = new Date(first.dateStr + 'T00:00:00');
+    const lastD  = new Date(last.dateStr  + 'T00:00:00');
+    const fmt = d => d.toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+    const weekLabel = `${fmt(firstD)} – ${fmt(lastD)}`;
+    const relLabel = containsToday ? 'This week' : (dateToNum(first.dateStr) > TODAY_NUM ? `+${Math.ceil((dateToNum(first.dateStr)-TODAY_NUM)/7)}wk` : `-${Math.ceil((TODAY_NUM-dateToNum(last.dateStr))/7)}wk`);
+
+    const tr = document.createElement('tr');
+    if (containsSelected) tr.classList.add('selected-row');
+    if (containsToday)    tr.classList.add('today-row');
+    if (krDays > 0)       tr.classList.add('in-korea');
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', () => {
+      const target = wk.rows.find(r => r.dateStr === TODAY_STR) || last;
+      selectDate(target.dateStr);
+    });
+
+    tr.innerHTML = `
+      <td class="col-date">${weekLabel}<span class="weekday">${DOW_LABELS[firstD.getDay()]}–${DOW_LABELS[lastD.getDay()]}</span></td>
+      <td class="col-relative">${relLabel}</td>
+      <td class="col-location">${krDays > 0 ? `<span class="location-kr">🇰🇷 ${krDays}d in KR</span>` : '<span style="color:#444;font-size:11px;">–</span>'}</td>
+      <td class="col-used">${maxUsed}</td>
+      <td class="col-left" style="color:${st.accent}">${minLeft}</td>
+      <td class="col-bar">
+        <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct.toFixed(1)}%;background:${st.accent}"></div></div>
+      </td>
+      <td class="col-note"></td>
+    `;
+    frag.appendChild(tr);
+  }
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+
+  // Scroll to row containing today
+  const rows = tbody.querySelectorAll('tr');
+  const todayRow = [...rows].find(r => r.classList.contains('today-row'));
+  if (todayRow) {
+    const scroll = document.getElementById('tableScroll');
+    scroll.scrollTop = todayRow.offsetTop - scroll.clientHeight / 2 + todayRow.clientHeight / 2;
+  }
 }
 
 function scrollToSelected() {
@@ -1276,25 +1463,19 @@ function buildCalStrip() {
     const remEl = document.createElement('div');
     remEl.className = 'cal-rem';
     remEl.textContent = remaining;
-    remEl.style.color = remColor;
-
-    const dotEl = document.createElement('div');
-    dotEl.className = 'cal-dot';
-    if (isSelected) { dotEl.style.background = accent; }
-    else if (isKorea) { dotEl.style.background = '#3b82f6'; }
-    else if (isToday) { dotEl.style.background = '#555'; }
+    remEl.style.background = remColor;
+    remEl.style.color = '#000';
 
     div.appendChild(dowEl);
     div.appendChild(domEl);
     div.appendChild(remEl);
-    div.appendChild(dotEl);
     div.addEventListener('click', () => selectDate(ds));
     strip.appendChild(div);
   }
 
   // scroll so the selected day is centered in the visible strip
   const selIdx = selNum - calAnchorNum + CAL_RANGE;
-  const CELL_W = 40; // 34px + 6px gap
+  const CELL_W = 50; // 44px + 6px gap
   const stripW = strip.clientWidth;
   strip.scrollLeft = selIdx * CELL_W - stripW / 2 + CELL_W / 2;
 }
@@ -1333,6 +1514,7 @@ function initRender() {
   document.getElementById('tableTitle').textContent =
     `All days · ${allRows.length.toLocaleString()} rows · click any row to select`;
   renderHero(selectedDate);
+  buildDangerPanel();
   buildTable();
   scrollToSelected();
   buildCalStrip();
@@ -1348,6 +1530,9 @@ fetch('/api/korea-data')
     }
     if (data.overrides && data.overrides.length > 0) {
       for (const [k, v] of data.overrides) DAY_OVERRIDES.set(k, v);
+    }
+    if (data.day_notes && data.day_notes.length > 0) {
+      for (const [k, v] of data.day_notes) DAY_NOTES.set(k, v);
     }
     rebuildFromTrips();
     initRender();
@@ -1450,7 +1635,10 @@ function addTrip() {
   buildTripsPanel();
   setTimeout(() => {
     const el = document.querySelector('.trip-card-editing');
-    if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 170;
+      window.scrollTo({top: Math.max(0, top), behavior: 'smooth'});
+    }
   }, 60);
 }
 
@@ -1617,6 +1805,17 @@ function buildTripsPanel() {
         const st = getStatus(remaining);
         const noteHtml = t.note ? `<div class="trip-note">${t.note}</div>` : '';
 
+        // Collect per-day notes within this trip's range
+        let dayNotesHtml = '';
+        for (let dn = entryNum; dn <= depNum; dn++) {
+          const ds = numToDateStr(dn);
+          const n = DAY_NOTES.get(ds);
+          if (n) {
+            const [, m, d] = ds.split('-').map(Number);
+            dayNotesHtml += `<div class="trip-note" style="color:#60a5fa">${m}/${d} ${n}</div>`;
+          }
+        }
+
         html += `<div class="trip-card ${cls}" data-trip-idx="${idx}">
           <div class="trip-num">#${t.num}</div>
           <div class="trip-body">
@@ -1625,6 +1824,7 @@ function buildTripsPanel() {
               <span class="trip-days-badge">${days}d</span>
             </div>
             ${noteHtml}
+            ${dayNotesHtml}
           </div>
           <div class="trip-meta">
             <div class="trip-remaining" style="color:${st.accent}">${remaining}</div>
@@ -1638,6 +1838,7 @@ function buildTripsPanel() {
     html += '</div>';
   }
   container.innerHTML = html;
+  requestAnimationFrame(() => scrollTripsToToday());
 }
 
 // ─────────────────────────────────────────────
@@ -1651,6 +1852,158 @@ function jumpToTripInDaily(entryDate) {
   scrollToSelected();
 }
 
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// Danger Panel — upcoming dates < 10 remaining
+// ─────────────────────────────────────────────
+
+function buildDangerPanel() {
+  const panel = document.getElementById('dangerPanel');
+  const endNum = Math.min(TODAY_NUM + 365, TABLE_END_NUM);
+
+  const days10 = [], days5 = [], days0 = [];
+  for (let d = TODAY_NUM + 1; d <= endNum; d++) {
+    const left = CAP - countKrDays(d);
+    const ds = numToDateStr(d);
+    if (left < 10) days10.push({ ds, left });
+    if (left < 5)  days5.push({ ds, left });
+    if (left < 0)  days0.push({ ds, left });
+  }
+
+  function makeDateList(days, color) {
+    if (days.length === 0) return '';
+    return days.map(({ ds, left }) => {
+      const wday = getWeekday(ds);
+      const [y, m, d] = ds.split('-').map(Number);
+      const label = new Date(Date.UTC(y, m-1, d)).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'});
+      return `<div style="display:flex;justify-content:space-between;padding:4px 10px;font-size:12px;border-bottom:1px solid #1a1d27;">
+        <span style="color:#aaa">${wday} ${label}</span>
+        <span style="font-weight:700;color:${color}">${left}d</span>
+      </div>`;
+    }).join('');
+  }
+
+  function row(id, count, label, color, days) {
+    const dim = count === 0;
+    const dateList = makeDateList(days, color);
+    return `
+      <div style="border-bottom:1px solid #1e2130;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+          <span style="font-size:13px;color:${dim ? '#444' : '#888'}">${label}</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:22px;font-weight:800;color:${dim ? '#333' : color}">${count}</span>
+            ${count > 0 ? `<button onclick="toggleDanger('${id}')" style="background:#1e2130;border:1px solid #2a2d3a;color:#888;font-size:11px;padding:3px 9px;border-radius:5px;cursor:pointer;" id="btn-${id}">▼ Show</button>` : ''}
+          </div>
+        </div>
+        <div id="${id}" style="display:none;background:#0d0f18;border-radius:6px;margin-bottom:8px;overflow:hidden;">
+          ${dateList}
+        </div>
+      </div>`;
+  }
+
+  panel.innerHTML = `
+    <div class="danger-title">⚠️ Next 365 days · days remaining in cap</div>
+    ${row('danger-10', days10.length, 'Days with < 10 remaining', '#eab308', days10)}
+    ${row('danger-5',  days5.length,  'Days with < 5 remaining',  '#f97316', days5)}
+    ${row('danger-0',  days0.length,  'Days over the cap',         '#ef4444', days0)}`;
+}
+
+function toggleDanger(id) {
+  const el  = document.getElementById(id);
+  const btn = document.getElementById('btn-' + id);
+  const open = el.style.display === 'none';
+  el.style.display  = open ? 'block' : 'none';
+  btn.textContent = open ? '▲ Hide' : '▼ Show';
+}
+
+// Annual Stats
+// ─────────────────────────────────────────────
+const STAT_COLORS = {
+  KR:    '#22c55e',
+  HK:    '#60a5fa',
+  JP:    '#f87171',
+  CN:    '#f97316',
+  MO:    '#a78bfa',
+  PH:    '#fbbf24',
+  US:    '#38bdf8',
+  UK:    '#818cf8',
+  TH:    '#34d399',
+  OTHER: '#6b7280',
+};
+
+function computeAnnualStats(year) {
+  const startNum = dateToNum(`${year}-01-01`);
+  const endNum   = dateToNum(`${year}-12-31`);
+  const counts   = {};
+  const daysInYear = endNum - startNum + 1;
+
+  for (let d = startNum; d <= endNum; d++) {
+    if (d > TODAY_NUM) break; // don't count future days
+    const loc = getEffectiveLocation(d);
+    const country = loc ? loc.country : 'HK'; // untracked = HK home base
+    counts[country] = (counts[country] || 0) + 1;
+  }
+  return { counts, daysInYear };
+}
+
+function buildStatsPanel() {
+  const sec = document.getElementById('statsSection');
+  const todayYear = new Date().getUTCFullYear();
+  const firstYear = 2021;
+  let html = '';
+
+  for (let yr = todayYear; yr >= firstYear; yr--) {
+    const { counts, daysInYear } = computeAnnualStats(yr);
+    const totalCounted = Object.values(counts).reduce((s, v) => s + v, 0);
+    if (totalCounted === 0) continue;
+
+    // Sort countries: KR first, HK second, then by count desc
+    const sorted = Object.entries(counts).sort(([a, av], [b, bv]) => {
+      if (a === 'KR') return -1; if (b === 'KR') return 1;
+      if (a === 'HK') return -1; if (b === 'HK') return 1;
+      return bv - av;
+    });
+
+    // Bar segments
+    let barHtml = '';
+    for (const [country, days] of sorted) {
+      const pct = (days / totalCounted * 100).toFixed(1);
+      const color = STAT_COLORS[country] || STAT_COLORS.OTHER;
+      const m = LOC_META[country] || { icon: '✈️', label: country };
+      const showLabel = days / totalCounted > 0.07;
+      barHtml += `<div class="stats-bar-seg${showLabel ? '' : ' seg-label-hide'}"
+        style="width:${pct}%;background:${color};"
+        title="${m.icon} ${m.label}: ${days}d (${pct}%)">${showLabel ? m.icon + ' ' + days + 'd' : ''}</div>`;
+    }
+
+    // Legend
+    let legendHtml = '';
+    for (const [country, days] of sorted) {
+      const pct = (days / totalCounted * 100).toFixed(1);
+      const color = STAT_COLORS[country] || STAT_COLORS.OTHER;
+      const m = LOC_META[country] || { icon: '✈️', label: country };
+      legendHtml += `<div class="stats-legend-item">
+        <div class="stats-legend-dot" style="background:${color}"></div>
+        ${m.icon} ${m.label}
+        <span class="stats-legend-days">${days}d</span>
+        <span class="stats-legend-pct">${pct}%</span>
+      </div>`;
+    }
+
+    const isCurrentYear = yr === todayYear;
+    const yearLabel = isCurrentYear ? `${yr} <span style="font-size:13px;color:#555;font-weight:400">(YTD — ${totalCounted} of ${daysInYear} days)</span>` : yr;
+
+    html += `<div class="stats-year-block">
+      <div class="stats-year-title">${yearLabel}</div>
+      <div class="stats-bar-wrap">${barHtml}</div>
+      <div class="stats-legend">${legendHtml}</div>
+    </div>
+    <hr class="stats-divider">`;
+  }
+
+  sec.innerHTML = html || '<p style="color:#555;padding:40px 0">No data yet.</p>';
+}
+
 function switchTab(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1661,6 +2014,9 @@ function switchTab(name, btn) {
     if (editingIsNew) { TRIPS.splice(editingTripIdx, 1); renumberTrips(); editingIsNew = false; editingTripIdx = -1; }
     buildTripsPanel();
     tripsBuilt = true;
+  }
+  if (name === 'stats') {
+    buildStatsPanel();
   }
 }
 </script>
