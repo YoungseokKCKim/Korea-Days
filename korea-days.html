@@ -39,7 +39,7 @@
     background: #1a1d27;
     border: 1px solid #2a2d3a;
     border-radius: 16px;
-    padding: 28px 32px;
+    padding: 28px 16px;
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
@@ -55,16 +55,22 @@
     background: var(--accent, #22c55e);
     border-radius: 16px 16px 0 0;
   }
-  .status-left {
+  .status-col {
     flex: 1;
     min-width: 0;
-    padding-right: 28px;
+    padding: 0 24px;
   }
+  .status-col + .status-col { border-left: 1px solid #2a2d3a; }
+  .status-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+  }
+  .status-hero .status-badge { align-self: center; }
   .status-right {
-    flex: 1;
-    min-width: 0;
-    border-left: 1px solid #2a2d3a;
-    padding-left: 28px;
     display: flex;
     flex-direction: column;
   }
@@ -203,6 +209,15 @@
     border-color: var(--sel-accent, #22c55e);
   }
   .cal-day.cal-in-korea { background: rgba(59,130,246,0.07); }
+  .cal-month {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #4a4d5a;
+    line-height: 1;
+  }
+  .cal-month.month-start { color: #60a5fa; }
   .cal-dow {
     font-size: 9px;
     font-weight: 600;
@@ -657,11 +672,91 @@
 
   /* ── Responsive ── */
   @media (max-width: 700px) {
-    .metrics-row { grid-template-columns: 1fr 1fr; }
-    .col-bar, .col-note { display: none; }
+    .status-card { flex-direction: column; }
+    .status-col { padding: 20px 0; }
+    .status-col + .status-col { border-left: none; border-top: 1px solid #2a2d3a; }
+    .metric-value.days-left { font-size: 56px; }
+    .col-note { display: none; }
     .metric-value { font-size: 32px; }
     .trip-card { grid-template-columns: 28px 1fr auto; }
   }
+  /* Twemoji-rendered emoji (incl. country flags) sized to match surrounding text */
+  img.emoji {
+    height: 1em;
+    width: 1em;
+    margin: 0 .05em 0 .1em;
+    vertical-align: -0.1em;
+    display: inline-block;
+  }
+  /* Location flags: render larger than the label text so similar flags
+     (KR/JP, HK/MO, etc.) are easy to tell apart at a glance. */
+  .loc-badge img.emoji,
+  .location-kr img.emoji,
+  .location-hk img.emoji,
+  .location-other img.emoji,
+  .picker-opt img.emoji,
+  .stats-bar-seg img.emoji,
+  .stats-legend-item img.emoji {
+    height: 18px;
+    width: 18px;
+    vertical-align: middle;
+  }
+
+  /* ── Merged week accordion (Daily/Weekly in one view) ── */
+  .week-block { border-bottom: 1px solid #1e2130; }
+  .week-block.is-today > .week-head { background: rgba(59,130,246,0.06); }
+  .week-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 12px; cursor: pointer; user-select: none;
+  }
+  .week-head:hover { background: #1a1d27; }
+  .week-caret {
+    color: #666; font-size: 10px; flex: 0 0 10px;
+    transition: transform 0.15s;
+  }
+  .week-block.open .week-caret { transform: rotate(90deg); }
+  .week-range { font-weight: 600; color: #ccc; font-size: 13px; min-width: 116px; }
+  .week-rel { color: #666; font-size: 11px; }
+  .week-summary { margin-left: auto; display: flex; gap: 14px; align-items: center; font-size: 12px; }
+  .week-kr { color: #60a5fa; font-weight: 600; }
+  .week-left { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .week-days-h { display: flex; gap: 18px; align-items: flex-start; padding: 0 12px 12px 34px; }
+  .week-block.open .week-days-h { display: none; }
+  .week-days-strip { display: flex; gap: 5px; flex: 0 0 auto; }
+  .dcell {
+    width: 56px; flex: 0 0 56px;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 8px 4px; border-radius: 8px;
+    background: #15171f; border: 1px solid transparent; cursor: pointer;
+  }
+  .week-notes { flex: 1 1 auto; min-width: 0; padding-top: 4px; display: flex; flex-direction: column; gap: 5px; }
+  .week-notes-empty { color: #3a3d4a; font-size: 12px; }
+  .week-notes-item { font-size: 12px; display: flex; gap: 8px; align-items: baseline; }
+  .week-notes-item .wn-date { color: #60a5fa; font-weight: 600; flex: 0 0 auto; }
+  .week-notes-item .wn-text { color: #aaa; min-width: 0; }
+  .dcell:hover { background: #1f222d; border-color: #2a2d3a; }
+  .dcell.is-today { border-color: #3a3d4a; }
+  .dcell.is-selected { border-color: var(--accent, #22c55e); box-shadow: 0 0 0 1px var(--accent, #22c55e); }
+  .dcell-dow { font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: #555; }
+  .dcell-dom { font-size: 13px; font-weight: 700; color: #ccc; }
+  .dcell-rem { font-size: 12px; font-weight: 800; line-height: 1; border-radius: 5px; padding: 2px 6px; color: #000; font-variant-numeric: tabular-nums; }
+
+  .week-days-v { display: none; padding: 2px 12px 12px 34px; }
+  .week-block.open .week-days-v { display: block; }
+  .drow {
+    display: grid; grid-template-columns: 140px auto 80px 1fr;
+    align-items: center; gap: 14px;
+    padding: 7px 8px; border-bottom: 1px solid #15171f; cursor: pointer;
+  }
+  .drow:hover { background: #15171f; }
+  .drow.is-today { background: rgba(59,130,246,0.06); }
+  .drow.is-selected { box-shadow: inset 3px 0 0 var(--accent, #22c55e); }
+  .drow-date { font-size: 13px; color: #ccc; font-variant-numeric: tabular-nums; }
+  .drow-left { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .drow-note { color: #666; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: text; }
+  .drow-note:hover { color: #999; }
+  .note-input { background: transparent; border: none; border-bottom: 1px solid #3a3d4a; color: #ccc; font-size: 12px; outline: none; width: 100%; padding: 0; font-family: inherit; }
 </style>
 </head>
 <body>
@@ -670,7 +765,7 @@
 <div id="locPicker">
   <div class="picker-title" id="pickerTitle">Set location</div>
   <div class="picker-opt" data-country="KR"><span>🇰🇷</span> Korea</div>
-  <div class="picker-opt" data-country="HK"><span>🏙️</span> Hong Kong</div>
+  <div class="picker-opt" data-country="HK"><span>🇭🇰</span> Hong Kong</div>
   <div class="picker-opt" data-country="MO"><span>🇲🇴</span> Macau</div>
   <div class="picker-opt" data-country="CN"><span>🇨🇳</span> China</div>
   <div class="picker-opt" data-country="JP"><span>🇯🇵</span> Japan</div>
@@ -691,7 +786,6 @@
 
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('daily', this)">📅 Daily View</button>
-  <button class="tab-btn" onclick="switchTab('trips', this)">✈️ Business Trips</button>
   <button class="tab-btn" onclick="switchTab('stats', this)">📊 Annual Stats</button>
 </div>
 
@@ -708,79 +802,46 @@
   <button class="cal-today-btn" onclick="calGoToday()">Today</button>
 
   <div class="status-card" id="statusCard">
-    <div class="status-left">
+    <div class="status-col status-context">
       <div class="selected-date-label">Trailing 365-day window ending</div>
       <div class="selected-date-display" id="heroDate">–</div>
-      <div class="metrics-row">
-        <div class="metric">
-          <div class="metric-label">Days Remaining</div>
-          <div class="metric-value days-left" id="heroDaysLeft">–</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Days Used</div>
-          <div class="metric-value days-used" id="heroDaysUsed">–</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Cap</div>
-          <div class="metric-value cap">182</div>
-        </div>
-        <div class="status-badge" id="heroBadge">
-          <div class="status-dot"></div>
-          <span id="heroBadgeText">–</span>
-        </div>
-        <div class="progress-wrap">
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="heroBar" style="width:0%"></div>
-          </div>
-          <div class="progress-labels">
-            <span>0</span>
-            <span id="progressLabel">0 / 182</span>
-            <span>182</span>
-          </div>
-        </div>
+    </div>
+    <div class="status-col status-hero">
+      <div class="metric-label">Days Remaining</div>
+      <div class="metric-value days-left" id="heroDaysLeft">–</div>
+      <div class="status-badge" id="heroBadge">
+        <div class="status-dot"></div>
+        <span id="heroBadgeText">–</span>
       </div>
     </div>
-    <div class="status-right" id="dangerPanel"></div>
+    <div class="status-col status-right" id="dangerPanel"></div>
   </div>
 </div>
 
 <div class="table-section">
   <div class="table-header">
-    <span class="table-title" id="tableTitle">Daily breakdown</span>
+    <span class="table-title" id="tableTitle">By week</span>
     <div style="display:flex;gap:4px;">
-      <button id="viewDailyBtn" onclick="setViewMode('daily')" style="padding:4px 12px;border-radius:6px;border:1px solid #3b82f6;background:#3b82f6;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Daily</button>
-      <button id="viewWeeklyBtn" onclick="setViewMode('weekly')" style="padding:4px 12px;border-radius:6px;border:1px solid #2a2d3a;background:none;color:#666;font-size:12px;font-weight:600;cursor:pointer;">Weekly</button>
+      <button onclick="setAllWeeks(true)" style="padding:4px 12px;border-radius:6px;border:1px solid #2a2d3a;background:none;color:#888;font-size:12px;font-weight:600;cursor:pointer;">⊞ Expand all</button>
+      <button onclick="setAllWeeks(false)" style="padding:4px 12px;border-radius:6px;border:1px solid #2a2d3a;background:none;color:#888;font-size:12px;font-weight:600;cursor:pointer;">⊟ Collapse all</button>
     </div>
   </div>
   <div class="table-wrap">
     <div class="table-scroll" id="tableScroll">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Relative</th>
-            <th>Location</th>
-            <th>Used (trailing 365d)</th>
-            <th>Remaining</th>
-            <th>Usage</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
+      <div id="weeksContainer"></div>
     </div>
   </div>
 </div>
 
 </div><!-- end #panel-daily -->
 
-<div id="panel-trips" class="tab-panel">
-  <div class="trips-section" id="tripsSection"></div>
-</div>
-
 <div id="panel-stats" class="tab-panel">
   <div class="stats-section" id="statsSection"></div>
 </div>
+
+<!-- Twemoji: render emoji (incl. country flags) as images so they show on every
+     OS, including Windows, whose system font has no country-flag glyphs. -->
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 
 <script>
 // ─────────────────────────────────────────────
@@ -1012,7 +1073,12 @@ function getEffectiveLocation(dayNum) {
   const ds = numToDateStr(dayNum);
   if (DAY_OVERRIDES.has(ds)) return {country: DAY_OVERRIDES.get(ds), note: '✏️ edited', overridden: true};
   const loc = LOCATION_MAP.get(dayNum) || null;
-  return loc ? {...loc, overridden: false} : null;
+  if (loc) return {...loc, overridden: false};
+  // Hong Kong is the home base: today & future days with no trip/override
+  // default to HK (display only — does NOT change Korea-day counts). Past
+  // untracked days stay blank so history isn't rewritten.
+  if (dayNum >= TODAY_NUM) return {country: 'HK', note: '', overridden: false, isDefault: true};
+  return null;
 }
 
 function isEffectiveKr(dayNum) {
@@ -1033,19 +1099,28 @@ function lerpColor(a, b, t) {
   const bl = Math.round(a[2] + (b[2]-a[2]) * t);
   return `rgb(${r},${g},${bl})`;
 }
-const C_GREEN  = [34, 197, 94];   // #22c55e  ≥20
-const C_AMBER  = [245, 158, 11];  // #f59e0b  10
-const C_ORANGE = [249, 115, 22];  // #f97316  5
-const C_RED    = [239, 68, 68];   // #ef4444  <5
+const C_GREEN  = [34, 197, 94];   // #22c55e  ≥18  Safe / Healthy
+const C_AMBER  = [245, 158, 11];  // #f59e0b  ~12  Caution onset
+const C_ORANGE = [249, 115, 22];  // #f97316  ~6   Warning
+const C_RED    = [239, 68, 68];   // #ef4444  ≤0   over the cap
 function gradientColor(remaining) {
-  if (remaining >= 20) return lerpColor(C_GREEN, C_GREEN, 0);
-  if (remaining >= 10) { const t = 1 - (remaining - 10) / 10; return lerpColor(C_GREEN, C_AMBER, t); }
-  if (remaining >= 5)  { const t = 1 - (remaining - 5) / 5;   return lerpColor(C_AMBER, C_ORANGE, t); }
-  const t = Math.min(1, (5 - remaining) / 5);  return lerpColor(C_ORANGE, C_RED, t);
+  // Lower remaining = closer to the 182-day cap = warmer color.
+  // Tuned so a 12–20 buffer reads green/healthy, warms through amber/orange
+  // as it thins toward the cap, and goes red at or over the cap.
+  if (remaining >= 18) return lerpColor(C_GREEN, C_GREEN, 0);
+  if (remaining >= 12) { const t = (18 - remaining) / 6; return lerpColor(C_GREEN, C_AMBER, t); }
+  if (remaining >= 6)  { const t = (12 - remaining) / 6; return lerpColor(C_AMBER, C_ORANGE, t); }
+  if (remaining >= 1)  { const t = (6 - remaining) / 5;  return lerpColor(C_ORANGE, C_RED, t); }
+  return lerpColor(C_RED, C_RED, 0);
 }
 function getStatus(remaining) {
   const accent = gradientColor(remaining);
-  const text = remaining >= 20 ? 'Safe' : remaining >= 10 ? 'Caution' : remaining >= 5 ? 'Warning' : 'Critical!';
+  const text =
+    remaining >= 18 ? 'Safe' :
+    remaining >= 12 ? 'Healthy' :
+    remaining >= 6  ? 'Caution' :
+    remaining >= 1  ? 'Warning' :
+                      'Over cap!';
   return {cls:'', bar:'', text, accent};
 }
 
@@ -1105,7 +1180,7 @@ computeAllRows();
 // ─────────────────────────────────────────────
 const LOC_META = {
   KR:    {cls:'location-kr',    icon:'🇰🇷', label:'KR'},
-  HK:    {cls:'location-hk',    icon:'🏙️',  label:'HK'},
+  HK:    {cls:'location-hk',    icon:'🇭🇰', label:'HK'},
   MO:    {cls:'location-other', icon:'🇲🇴', label:'Macau'},
   CN:    {cls:'location-other', icon:'🇨🇳', label:'China'},
   JP:    {cls:'location-other', icon:'🇯🇵', label:'JP'},
@@ -1168,14 +1243,12 @@ document.getElementById('locPicker').addEventListener('click', e => {
   // Recompute and re-render
   computeAllRows();
   renderHero(selectedDate);
-  buildTable();
-  // Re-highlight without scroll reset
-  highlightSelected();
+  buildWeeks();
 });
 
 // Close picker on outside click
 document.addEventListener('click', e => {
-  if (!e.target.closest('#locPicker') && !e.target.closest('.col-location')) closePicker();
+  if (!e.target.closest('#locPicker') && !e.target.closest('.loc-pick')) closePicker();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePicker(); });
 
@@ -1186,16 +1259,12 @@ function renderHero(dateStr) {
   const n = dateToNum(dateStr);
   const used = countKrDays(n);
   const left = CAP - used;
-  const pct = Math.min(100, (used / CAP) * 100);
   const st = getStatus(left);
 
   document.getElementById('heroDate').innerHTML =
     formatDateLong(dateStr) +
     `<span class="relative-label">${relativeLabel(dateStr, TODAY_NUM)}</span>`;
   document.getElementById('heroDaysLeft').textContent = left;
-  document.getElementById('heroDaysUsed').textContent = used;
-  document.getElementById('heroBar').style.width = pct + '%';
-  document.getElementById('progressLabel').textContent = `${used} / ${CAP}`;
 
   const card = document.getElementById('statusCard');
   card.style.setProperty('--accent', st.accent);
@@ -1222,7 +1291,6 @@ function buildTable() {
   for (const row of allRows) {
     const tr = document.createElement('tr');
     const st = getStatus(row.left);
-    const pct = Math.min(100, (row.used / CAP) * 100);
     const relLabel = relativeLabel(row.dateStr, TODAY_NUM);
 
     if (row.dateStr === selectedDate) tr.classList.add('selected-row');
@@ -1239,11 +1307,7 @@ function buildTable() {
       <td class="col-date">${row.dateStr}<span class="weekday">${getWeekday(row.dateStr)}</span></td>
       <td class="col-relative">${relLabel}</td>
       <td class="col-location" data-date="${row.dateStr}">${locHTML}</td>
-      <td class="col-used">${row.used}</td>
       <td class="col-left" style="color:${st.accent}">${row.left}</td>
-      <td class="col-bar">
-        <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct.toFixed(1)}%;background:${st.accent}"></div></div>
-      </td>
       <td class="col-note" data-date="${row.dateStr}">${dayNote}</td>
     `;
     // Row click → select date (but not if clicking location or note)
@@ -1358,11 +1422,7 @@ function buildWeeklyTable() {
       <td class="col-date">${weekLabel}<span class="weekday">${DOW_LABELS[firstD.getDay()]}–${DOW_LABELS[lastD.getDay()]}</span></td>
       <td class="col-relative">${relLabel}</td>
       <td class="col-location">${krDays > 0 ? `<span class="location-kr">🇰🇷 ${krDays}d in KR</span>` : '<span style="color:#444;font-size:11px;">–</span>'}</td>
-      <td class="col-used">${maxUsed}</td>
       <td class="col-left" style="color:${st.accent}">${minLeft}</td>
-      <td class="col-bar">
-        <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct.toFixed(1)}%;background:${st.accent}"></div></div>
-      </td>
       <td class="col-note"></td>
     `;
     frag.appendChild(tr);
@@ -1379,21 +1439,191 @@ function buildWeeklyTable() {
   }
 }
 
-function scrollToSelected() {
-  const row = document.querySelector('tr[data-date="' + selectedDate + '"]');
-  if (row) {
-    const scroll = document.getElementById('tableScroll');
-    const rowTop = row.offsetTop;
-    const scrollTop = rowTop - scroll.clientHeight / 2 + row.clientHeight / 2;
-    scroll.scrollTop = Math.max(0, scrollTop);
+// ── Merged Daily/Weekly accordion ───────────────────────────────
+const openWeeks = new Set(); // week-start dateStrs currently expanded
+const TWEMOJI_OPTS = { base: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/', folder: 'svg', ext: '.svg' };
+
+function groupWeeks() {
+  const weeks = [];
+  let week = null;
+  for (const row of allRows) {
+    const d = new Date(row.dateStr + 'T00:00:00');
+    if (!week || d.getDay() === 1) { week = { rows: [], key: row.dateStr }; weeks.push(week); }
+    week.rows.push(row);
   }
+  return weeks;
+}
+
+function buildWeeks() {
+  const container = document.getElementById('weeksContainer');
+  const scroll = document.getElementById('tableScroll');
+  const prevTop = scroll ? scroll.scrollTop : 0;
+  const frag = document.createDocumentFragment();
+  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  for (const wk of groupWeeks()) {
+    const first = wk.rows[0], last = wk.rows[wk.rows.length - 1];
+    const krDays = wk.rows.filter(r => r.isKr).length;
+    const minLeft = Math.min(...wk.rows.map(r => r.left));
+    const st = getStatus(minLeft);
+    const containsToday = wk.rows.some(r => r.dateStr === TODAY_STR);
+    const firstD = new Date(first.dateStr + 'T00:00:00');
+    const lastD  = new Date(last.dateStr + 'T00:00:00');
+    const fmt = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const relLabel = containsToday ? 'This week'
+      : (dateToNum(first.dateStr) > TODAY_NUM
+          ? `+${Math.ceil((dateToNum(first.dateStr) - TODAY_NUM) / 7)}wk`
+          : `−${Math.ceil((TODAY_NUM - dateToNum(last.dateStr)) / 7)}wk`);
+
+    const block = document.createElement('div');
+    block.className = 'week-block' + (openWeeks.has(wk.key) ? ' open' : '') + (containsToday ? ' is-today' : '');
+    block.dataset.wk = wk.key;
+
+    const head = document.createElement('div');
+    head.className = 'week-head';
+    head.innerHTML =
+      `<span class="week-caret">▸</span>` +
+      `<span class="week-range">${fmt(firstD)} – ${fmt(lastD)}</span>` +
+      `<span class="week-rel">${relLabel}</span>` +
+      `<span class="week-summary">${krDays > 0 ? `<span class="week-kr">🇰🇷 ${krDays}d</span>` : ''}<span class="week-left" style="color:${st.accent}">${minLeft} left</span></span>`;
+    head.addEventListener('click', () => toggleWeek(wk.key));
+    block.appendChild(head);
+
+    // collapsed: compact 7-day strip (left) + notes (right)
+    const hWrap = document.createElement('div');
+    hWrap.className = 'week-days-h';
+    const strip = document.createElement('div');
+    strip.className = 'week-days-strip';
+    for (const r of wk.rows) {
+      const d = new Date(r.dateStr + 'T00:00:00');
+      const cell = document.createElement('div');
+      cell.className = 'dcell loc-pick' + (r.dateStr === TODAY_STR ? ' is-today' : '') + (r.dateStr === selectedDate ? ' is-selected' : '');
+      cell.dataset.date = r.dateStr;
+      cell.innerHTML =
+        `<span class="dcell-dow">${DOW[d.getDay()]}</span>` +
+        `<span class="dcell-dom">${d.getDate()}</span>` +
+        `<span class="dcell-loc">${makeLocBadge(r.loc, r.dateStr)}</span>` +
+        `<span class="dcell-rem" style="background:${gradientColor(r.left)}">${r.left}</span>`;
+      cell.addEventListener('click', e => { e.stopPropagation(); openPicker(r.dateStr, cell); });
+      strip.appendChild(cell);
+    }
+    hWrap.appendChild(strip);
+
+    const notes = document.createElement('div');
+    notes.className = 'week-notes';
+    const noted = wk.rows.filter(r => (DAY_NOTES.get(r.dateStr) || '').length);
+    if (noted.length === 0) {
+      const empty = document.createElement('span');
+      empty.className = 'week-notes-empty';
+      empty.textContent = 'No notes — expand the week to add holidays / reasons';
+      notes.appendChild(empty);
+    } else {
+      for (const r of noted) {
+        const d = new Date(r.dateStr + 'T00:00:00');
+        const item = document.createElement('div');
+        item.className = 'week-notes-item';
+        const dt = document.createElement('span');
+        dt.className = 'wn-date';
+        dt.textContent = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        const tx = document.createElement('span');
+        tx.className = 'wn-text';
+        tx.textContent = DAY_NOTES.get(r.dateStr);
+        item.appendChild(dt); item.appendChild(tx);
+        notes.appendChild(item);
+      }
+    }
+    hWrap.appendChild(notes);
+    block.appendChild(hWrap);
+
+    // expanded: vertical day rows
+    const vList = document.createElement('div');
+    vList.className = 'week-days-v';
+    for (const r of wk.rows) {
+      const dst = getStatus(r.left);
+      const note = DAY_NOTES.get(r.dateStr) || '';
+      const drow = document.createElement('div');
+      drow.className = 'drow loc-pick' + (r.dateStr === TODAY_STR ? ' is-today' : '') + (r.dateStr === selectedDate ? ' is-selected' : '');
+      drow.dataset.date = r.dateStr;
+      drow.innerHTML =
+        `<span class="drow-date">${r.dateStr}<span class="weekday">${getWeekday(r.dateStr)}</span></span>` +
+        `<span class="drow-loc">${makeLocBadge(r.loc, r.dateStr)}</span>` +
+        `<span class="drow-left" style="color:${dst.accent}">${r.left} left</span>` +
+        `<span class="drow-note" title="Click to add a note (holiday, reason, etc.)"></span>`;
+      const noteEl = drow.querySelector('.drow-note');
+      if (note) { noteEl.textContent = note; }
+      else { noteEl.textContent = '+ note'; noteEl.style.color = '#3a3d4a'; }
+      drow.addEventListener('click', e => {
+        if (e.target.closest('.drow-note')) return;
+        e.stopPropagation();
+        openPicker(r.dateStr, drow.querySelector('.drow-loc'));
+      });
+      noteEl.addEventListener('click', e => { e.stopPropagation(); startNoteEdit(r.dateStr, noteEl); });
+      vList.appendChild(drow);
+    }
+    block.appendChild(vList);
+
+    frag.appendChild(block);
+  }
+  container.innerHTML = '';
+  container.appendChild(frag);
+  if (window.twemoji) twemoji.parse(container, TWEMOJI_OPTS);
+  if (scroll) scroll.scrollTop = prevTop;
+}
+
+function toggleWeek(key) {
+  const block = document.querySelector(`.week-block[data-wk="${key}"]`);
+  if (!block) return;
+  if (openWeeks.has(key)) { openWeeks.delete(key); block.classList.remove('open'); }
+  else { openWeeks.add(key); block.classList.add('open'); }
+}
+
+function setAllWeeks(open) {
+  document.querySelectorAll('.week-block').forEach(b => {
+    if (open) openWeeks.add(b.dataset.wk); else openWeeks.delete(b.dataset.wk);
+    b.classList.toggle('open', open);
+  });
+}
+
+// Inline day-note editor (holiday / reason for a location). Persists & syncs.
+function startNoteEdit(ds, el) {
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.className = 'note-input';
+  inp.value = DAY_NOTES.get(ds) || '';
+  el.textContent = '';
+  el.style.color = '';
+  el.appendChild(inp);
+  inp.focus();
+  inp.select();
+  let done = false;
+  const commit = save => {
+    if (done) return; done = true;
+    if (save) {
+      const v = inp.value.trim();
+      if (v) DAY_NOTES.set(ds, v); else DAY_NOTES.delete(ds);
+      saveToServer();
+    }
+    buildWeeks();
+  };
+  inp.addEventListener('blur', () => commit(true));
+  inp.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { ev.preventDefault(); commit(true); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); commit(false); }
+  });
+}
+
+function scrollToSelected() {
+  const scroll = document.getElementById('tableScroll');
+  const el = document.querySelector('#weeksContainer [data-date="' + selectedDate + '"]');
+  if (!scroll || !el) return;
+  const block = el.closest('.week-block') || el;
+  const rel = block.getBoundingClientRect().top - scroll.getBoundingClientRect().top;
+  scroll.scrollTop = Math.max(0, scroll.scrollTop + rel - 16);
 }
 
 function highlightSelected() {
-  document.querySelectorAll('.data-table tbody tr').forEach(tr => {
-    tr.classList.remove('selected-row');
-    if (tr.dataset.date === selectedDate) tr.classList.add('selected-row');
-  });
+  document.querySelectorAll('#weeksContainer .is-selected').forEach(el => el.classList.remove('is-selected'));
+  document.querySelectorAll('#weeksContainer [data-date="' + selectedDate + '"]').forEach(el => el.classList.add('is-selected'));
 }
 
 function selectDate(dateStr) {
@@ -1449,6 +1679,10 @@ function buildCalStrip() {
       div.style.boxShadow   = `0 0 0 1px ${accent}33`;
     }
 
+    const monEl = document.createElement('div');
+    monEl.className = 'cal-month' + (dom === 1 || offset === -CAL_RANGE ? ' month-start' : '');
+    monEl.textContent = d.toLocaleDateString('en-US', { month: 'short' });
+
     const dowEl = document.createElement('div');
     dowEl.className = 'cal-dow';
     dowEl.textContent = dow;
@@ -1466,6 +1700,7 @@ function buildCalStrip() {
     remEl.style.background = remColor;
     remEl.style.color = '#000';
 
+    div.appendChild(monEl);
     div.appendChild(dowEl);
     div.appendChild(domEl);
     div.appendChild(remEl);
@@ -1512,10 +1747,10 @@ document.getElementById('datePicker').addEventListener('change', e => {
 
 function initRender() {
   document.getElementById('tableTitle').textContent =
-    `All days · ${allRows.length.toLocaleString()} rows · click any row to select`;
+    'By week · click a day to set its country · ▸ expand a week for detail';
   renderHero(selectedDate);
   buildDangerPanel();
-  buildTable();
+  buildWeeks();
   scrollToSelected();
   buildCalStrip();
 }
@@ -1571,7 +1806,7 @@ function rebuildFromTrips() {
   for (const t of KR_TRIPS_NUMS) for (let d = t.s; d <= t.e; d++) LOCATION_MAP.set(d, {country: 'KR', note: ''});
   computeAllRows();
   renderHero(selectedDate);
-  buildTable();
+  buildWeeks();
 }
 
 // ─────────────────────────────────────────────
@@ -1854,20 +2089,20 @@ function jumpToTripInDaily(entryDate) {
 
 // ─────────────────────────────────────────────
 // ─────────────────────────────────────────────
-// Danger Panel — upcoming dates < 10 remaining
+// Danger Panel — upcoming dates with a thin buffer (caution/warning) or over the cap
 // ─────────────────────────────────────────────
 
 function buildDangerPanel() {
   const panel = document.getElementById('dangerPanel');
   const endNum = Math.min(TODAY_NUM + 365, TABLE_END_NUM);
 
-  const days10 = [], days5 = [], days0 = [];
+  const daysCaution = [], daysWarning = [], daysOver = [];
   for (let d = TODAY_NUM + 1; d <= endNum; d++) {
     const left = CAP - countKrDays(d);
     const ds = numToDateStr(d);
-    if (left < 10) days10.push({ ds, left });
-    if (left < 5)  days5.push({ ds, left });
-    if (left < 0)  days0.push({ ds, left });
+    if (left < 10) daysCaution.push({ ds, left });
+    if (left < 5)  daysWarning.push({ ds, left });
+    if (left < 1)  daysOver.push({ ds, left });
   }
 
   function makeDateList(days, color) {
@@ -1903,9 +2138,9 @@ function buildDangerPanel() {
 
   panel.innerHTML = `
     <div class="danger-title">⚠️ Next 365 days · days remaining in cap</div>
-    ${row('danger-10', days10.length, 'Days with < 10 remaining', '#eab308', days10)}
-    ${row('danger-5',  days5.length,  'Days with < 5 remaining',  '#f97316', days5)}
-    ${row('danger-0',  days0.length,  'Days over the cap',         '#ef4444', days0)}`;
+    ${row('danger-10', daysCaution.length, 'Days with < 10 remaining (caution)', '#eab308', daysCaution)}
+    ${row('danger-5',  daysWarning.length, 'Days with < 5 remaining (warning)',  '#f97316', daysWarning)}
+    ${row('danger-0',  daysOver.length,    'Days at or over the cap',            '#ef4444', daysOver)}`;
 }
 
 function toggleDanger(id) {
@@ -2009,16 +2244,37 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
-  if (name === 'trips') {
-    // Reset any in-progress unsaved add when switching away and back
-    if (editingIsNew) { TRIPS.splice(editingTripIdx, 1); renumberTrips(); editingIsNew = false; editingTripIdx = -1; }
-    buildTripsPanel();
-    tripsBuilt = true;
-  }
   if (name === 'stats') {
     buildStatsPanel();
   }
 }
+
+// ── Cross-platform emoji rendering ──────────────────────────────
+// Country flags are regional-indicator emoji (🇰🇷 etc.) which Windows
+// refuses to render. Twemoji replaces emoji text with <img>, so flags
+// show on every OS. Parse the initial DOM, then watch for the app's
+// dynamic renders (tables, badges, calendar strip) and parse just the
+// newly-added subtrees. The observer is disconnected while parsing so
+// Twemoji's own <img> insertions don't retrigger it.
+(function () {
+  if (!window.twemoji) return;
+  const OPTS = {
+    base: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/',
+    folder: 'svg',
+    ext: '.svg',
+  };
+  const obs = new MutationObserver(muts => {
+    obs.disconnect();
+    for (const m of muts) {
+      for (const node of m.addedNodes) {
+        if (node.nodeType === 1) twemoji.parse(node, OPTS);
+      }
+    }
+    obs.observe(document.body, { childList: true, subtree: true });
+  });
+  twemoji.parse(document.body, OPTS);
+  obs.observe(document.body, { childList: true, subtree: true });
+})();
 </script>
 </body>
 </html>

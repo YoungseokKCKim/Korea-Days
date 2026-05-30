@@ -4,3 +4,5 @@ node_modules/
 korea-data.json
 .env
 .env.local
+.wrangler/
+supabase/.temp/
