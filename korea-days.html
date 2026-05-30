@@ -223,7 +223,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: #555;
+    color: #9ca3af;
   }
   .cal-dom {
     font-size: 13px;
@@ -679,6 +679,10 @@
     .col-note { display: none; }
     .metric-value { font-size: 32px; }
     .trip-card { grid-template-columns: 28px 1fr auto; }
+    /* Week strip: days in a row, notes wrap below; tighter cells */
+    .week-days-h { flex-direction: column; gap: 8px; padding: 0 8px 12px 12px; }
+    .week-days-strip { gap: 4px; justify-content: space-between; }
+    .dcell { width: 40px; flex: 0 0 40px; }
   }
   /* Twemoji-rendered emoji (incl. country flags) sized to match surrounding text */
   img.emoji {
@@ -725,11 +729,18 @@
   .week-block.open .week-days-h { display: none; }
   .week-days-strip { display: flex; gap: 5px; flex: 0 0 auto; }
   .dcell {
-    width: 56px; flex: 0 0 56px;
+    width: 44px; flex: 0 0 44px;
     display: flex; flex-direction: column; align-items: center; gap: 5px;
-    padding: 8px 4px; border-radius: 8px;
+    padding: 8px 2px; border-radius: 8px;
     background: #15171f; border: 1px solid transparent; cursor: pointer;
   }
+  .dcell-loc { display: flex; flex-direction: column; align-items: center; gap: 1px; line-height: 1; }
+  .dcell-loc img.emoji { height: 18px; width: 18px; margin: 0; }
+  .dcell-lbl { font-size: 9px; font-weight: 700; letter-spacing: .02em; line-height: 1; }
+  .dcell-loc.location-kr .dcell-lbl { color: #60a5fa; }
+  .dcell-loc.location-hk .dcell-lbl { color: #c084fc; }
+  .dcell-loc.location-other .dcell-lbl { color: #9ca3af; }
+  .dcell-loc-empty { color: #3a3d4a; font-size: 15px; font-weight: 700; }
   .week-notes { flex: 1 1 auto; min-width: 0; padding-top: 4px; display: flex; flex-direction: column; gap: 5px; }
   .week-notes-empty { color: #3a3d4a; font-size: 12px; }
   .week-notes-item { font-size: 12px; display: flex; gap: 8px; align-items: baseline; }
@@ -738,7 +749,7 @@
   .dcell:hover { background: #1f222d; border-color: #2a2d3a; }
   .dcell.is-today { border-color: #3a3d4a; }
   .dcell.is-selected { border-color: var(--accent, #22c55e); box-shadow: 0 0 0 1px var(--accent, #22c55e); }
-  .dcell-dow { font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: #555; }
+  .dcell-dow { font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: #9ca3af; }
   .dcell-dom { font-size: 13px; font-weight: 700; color: #ccc; }
   .dcell-rem { font-size: 12px; font-weight: 800; line-height: 1; border-radius: 5px; padding: 2px 6px; color: #000; font-variant-numeric: tabular-nums; }
 
@@ -1200,6 +1211,14 @@ function makeLocBadge(loc, dateStr) {
   return `<span class="loc-badge ${m.cls}" title="Click to change">${m.icon} ${m.label}${ovDot}</span>`;
 }
 
+// Compact flag-over-abbreviation for the collapsed week cells (narrower than
+// the side-by-side badge, so 7 days fit on a phone).
+function locStack(loc) {
+  if (!loc) return '<span class="dcell-loc dcell-loc-empty" title="Click to set location">+</span>';
+  const m = LOC_META[loc.country] || {cls:'location-other', icon:'', label: loc.country};
+  return `<span class="dcell-loc ${m.cls}" title="Click to change">${m.icon}<span class="dcell-lbl">${m.label}</span></span>`;
+}
+
 let pickerTargetDate = null;
 
 function openPicker(dateStr, cell) {
@@ -1502,7 +1521,7 @@ function buildWeeks() {
       cell.innerHTML =
         `<span class="dcell-dow">${DOW[d.getDay()]}</span>` +
         `<span class="dcell-dom">${d.getDate()}</span>` +
-        `<span class="dcell-loc">${makeLocBadge(r.loc, r.dateStr)}</span>` +
+        locStack(r.loc) +
         `<span class="dcell-rem" style="background:${gradientColor(r.left)}">${r.left}</span>`;
       cell.addEventListener('click', e => { e.stopPropagation(); openPicker(r.dateStr, cell); });
       strip.appendChild(cell);
