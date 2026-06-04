@@ -1329,6 +1329,24 @@ document.getElementById('locPicker').addEventListener('click', e => {
   const opt = e.target.closest('.picker-opt[data-country]');
   if (!opt || !pickerTargetDate) return;
   const country = opt.dataset.country;
+
+  // Protect the past: confirm before changing a date earlier than today, so a
+  // stray tap can't silently rewrite history. (A deliberate correction is one OK.)
+  if (pickerTargetDate < TODAY_STR) {
+    const curC = (getEffectiveLocation(dateToNum(pickerTargetDate)) || {}).country || null;
+    const newC = country === 'CLEAR' ? null : country;
+    const changing = country === 'CLEAR' ? DAY_OVERRIDES.has(pickerTargetDate) : (newC !== curC);
+    if (changing) {
+      const lbl = c => c ? (LOC_META[c] ? LOC_META[c].label : c) : 'none';
+      const dt = new Date(pickerTargetDate + 'T00:00:00')
+        .toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+      const msg = country === 'CLEAR'
+        ? `${dt} is a PAST date (currently ${lbl(curC)}).\n\nClear its manual location?`
+        : `${dt} is a PAST date — currently ${lbl(curC)}.\n\nChange it to ${lbl(newC)}?`;
+      if (!confirm(msg)) { closePicker(); return; }
+    }
+  }
+
   if (country === 'CLEAR') {
     DAY_OVERRIDES.delete(pickerTargetDate);
   } else {
