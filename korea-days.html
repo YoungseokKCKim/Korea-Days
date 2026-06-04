@@ -477,6 +477,26 @@
     padding: 3px 10px; border-radius: 6px; cursor: pointer;
   }
   .wn-add:hover { color: #aaa; border-color: #3a3d4a; }
+  #dangerPopover {
+    display: none; position: fixed; z-index: 200;
+    width: 300px; max-width: calc(100vw - 16px);
+    background: #1a1d27; border: 1px solid #3a3d4a; border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    flex-direction: column; overflow: hidden;
+  }
+  #dangerPopover.open { display: flex; }
+  #dangerPopover .dp-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 12px; border-bottom: 1px solid #2a2d3a; flex: 0 0 auto;
+  }
+  #dangerPopover .dp-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #aaa;
+  }
+  #dangerPopover .dp-close {
+    background: none; border: none; color: #888; font-size: 18px; line-height: 1;
+    cursor: pointer; padding: 0 2px;
+  }
+  #dangerPopover .dp-body { overflow-y: auto; max-height: 56vh; }
   .picker-title {
     font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
     color: #555; padding: 2px 6px 6px; border-bottom: 1px solid #2a2d3a;
@@ -834,6 +854,14 @@
     <button id="npDelete" class="np-del" type="button">Delete</button>
     <button id="npSave" class="np-save" type="button">Save</button>
   </div>
+</div>
+
+<div id="dangerPopover">
+  <div class="dp-head">
+    <span class="dp-title" id="dpTitle"></span>
+    <button class="dp-close" type="button" onclick="closeDangerPopover()">×</button>
+  </div>
+  <div class="dp-body" id="dpBody"></div>
 </div>
 
 <div class="header">
@@ -1365,6 +1393,28 @@ document.getElementById('notePicker').addEventListener('click', e => e.stopPropa
 document.addEventListener('click', e => {
   if (!e.target.closest('#notePicker') && !e.target.closest('.wn-clickable')) closeNotePicker();
 });
+
+// ── Danger-panel "Show" → floating bubble (instead of pushing the page down) ──
+function openDangerPopover(id, btn) {
+  const src = document.getElementById(id);
+  if (!src) return;
+  document.getElementById('dpTitle').textContent = btn.dataset.title || 'Days';
+  document.getElementById('dpBody').innerHTML = src.innerHTML;
+  const pop = document.getElementById('dangerPopover');
+  pop.classList.add('open');                       // show first so we can measure
+  const r = btn.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  let left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8));
+  let top = (r.bottom + 6 + h > window.innerHeight - 8) ? Math.max(8, r.top - h - 6) : r.bottom + 6;
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+}
+function closeDangerPopover() { document.getElementById('dangerPopover').classList.remove('open'); }
+document.getElementById('dangerPopover').addEventListener('click', e => e.stopPropagation());
+document.addEventListener('click', e => {
+  if (!e.target.closest('#dangerPopover') && !e.target.closest('.danger-show-btn')) closeDangerPopover();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDangerPopover(); });
 
 // ─────────────────────────────────────────────
 // Render
@@ -2266,7 +2316,7 @@ function buildDangerPanel() {
           <span style="font-size:13px;color:${dim ? '#444' : '#888'}">${label}</span>
           <div style="display:flex;align-items:center;gap:10px;">
             <span style="font-size:22px;font-weight:800;color:${dim ? '#333' : color}">${count}</span>
-            ${count > 0 ? `<button onclick="toggleDanger('${id}')" style="background:#1e2130;border:1px solid #2a2d3a;color:#888;font-size:11px;padding:3px 9px;border-radius:5px;cursor:pointer;" id="btn-${id}">▼ Show</button>` : ''}
+            ${count > 0 ? `<button class="danger-show-btn" onclick="openDangerPopover('${id}', this)" data-title="${label.replace(/</g, '&lt;')}" style="background:#1e2130;border:1px solid #2a2d3a;color:#888;font-size:11px;padding:3px 9px;border-radius:5px;cursor:pointer;">Show ▸</button>` : ''}
           </div>
         </div>
         <div id="${id}" style="display:none;background:#0d0f18;border-radius:6px;margin-bottom:8px;overflow:hidden;">
