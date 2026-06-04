@@ -496,7 +496,7 @@
     background: none; border: none; color: #888; font-size: 18px; line-height: 1;
     cursor: pointer; padding: 0 2px;
   }
-  #dangerPopover .dp-body { overflow-y: auto; max-height: 56vh; }
+  #dangerPopover .dp-body { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
   .picker-title {
     font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
     color: #555; padding: 2px 6px 6px; border-bottom: 1px solid #2a2d3a;
@@ -1401,13 +1401,19 @@ function openDangerPopover(id, btn) {
   document.getElementById('dpTitle').textContent = btn.dataset.title || 'Days';
   document.getElementById('dpBody').innerHTML = src.innerHTML;
   const pop = document.getElementById('dangerPopover');
-  pop.classList.add('open');                       // show first so we can measure
-  const r = btn.getBoundingClientRect();
-  const w = pop.offsetWidth, h = pop.offsetHeight;
-  let left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8));
-  let top = (r.bottom + 6 + h > window.innerHeight - 8) ? Math.max(8, r.top - h - 6) : r.bottom + 6;
+  pop.style.maxHeight = '';                         // reset before measuring
+  pop.classList.add('open');                        // show so we can measure width
+  // Top of the bubble = bottom of the "Days with < x remaining" label text.
+  const labelEl = (btn.parentElement && btn.parentElement.parentElement
+    && btn.parentElement.parentElement.querySelector('span')) || btn;
+  const lr = labelEl.getBoundingClientRect();
+  const br = btn.getBoundingClientRect();
+  const w = pop.offsetWidth;
+  const left = Math.max(8, Math.min(br.right - w, window.innerWidth - w - 8));
+  const top = lr.bottom + 2;
   pop.style.left = left + 'px';
   pop.style.top = top + 'px';
+  pop.style.maxHeight = Math.max(120, window.innerHeight - top - 8) + 'px';  // drop down, scroll if tall
 }
 function closeDangerPopover() { document.getElementById('dangerPopover').classList.remove('open'); }
 document.getElementById('dangerPopover').addEventListener('click', e => e.stopPropagation());
