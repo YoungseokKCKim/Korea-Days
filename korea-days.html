@@ -1337,7 +1337,9 @@ document.getElementById('locPicker').addEventListener('click', e => {
   // Recompute and re-render
   computeAllRows();
   renderHero(selectedDate);
+  buildDangerPanel();
   buildWeeks();
+  buildCalStrip();
 });
 
 // Close picker on outside click
@@ -2001,7 +2003,9 @@ function rebuildFromTrips() {
   for (const t of KR_TRIPS_NUMS) for (let d = t.s; d <= t.e; d++) LOCATION_MAP.set(d, {country: 'KR', note: ''});
   computeAllRows();
   renderHero(selectedDate);
+  buildDangerPanel();
   buildWeeks();
+  buildCalStrip();
 }
 
 // ─────────────────────────────────────────────
