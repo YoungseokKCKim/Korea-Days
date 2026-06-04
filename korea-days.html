@@ -1211,8 +1211,8 @@ function relativeLabel(dateStr, todayNum) {
 // State
 // ─────────────────────────────────────────────
 let selectedDate = todayStr();
-const TODAY_STR = todayStr();
-const TODAY_NUM = dateToNum(TODAY_STR);
+let TODAY_STR = todayStr();
+let TODAY_NUM = dateToNum(TODAY_STR);
 
 // Table range: 365 days before first KR trip to end of 2026
 const TABLE_START_NUM = dateToNum('2021-03-10') - 7;
@@ -1838,9 +1838,31 @@ function calScroll(dir) {
 }
 
 function calGoToday() {
+  refreshToday();
   calAnchorNum = TODAY_NUM;
   selectDate(TODAY_STR);
 }
+
+// "today" is computed at page load; if the app is left open across midnight
+// it would otherwise go stale. Recompute it and re-render when the date has
+// actually rolled over (on the Today button and when the tab regains focus).
+function refreshToday() {
+  const t = todayStr();
+  if (t === TODAY_STR) return;
+  TODAY_STR = t;
+  TODAY_NUM = dateToNum(t);
+  selectedDate = t;
+  const dp = document.getElementById('datePicker');
+  if (dp) dp.value = t;
+  computeAllRows();
+  renderHero(t);
+  buildDangerPanel();
+  buildWeeks();
+  calAnchorNum = TODAY_NUM;
+  buildCalStrip();
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshToday(); });
+window.addEventListener('focus', refreshToday);
 
 // Patch selectDate to also refresh the strip
 const _origSelectDate = selectDate;
