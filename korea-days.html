@@ -39,7 +39,7 @@
     background: #ffffff;
     border: 1px solid #e3e6eb;
     border-radius: 16px;
-    padding: 28px 16px;
+    padding: 18px 16px;
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
@@ -67,7 +67,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 14px;
+    gap: 10px;
   }
   .status-hero .status-badge { align-self: center; }
   .status-right {
@@ -75,11 +75,12 @@
     flex-direction: column;
   }
   .danger-title {
-    font-size: 11px;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
     color: #7a818f;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .danger-summary {
     font-size: 13px;
@@ -107,7 +108,7 @@
     font-size: 28px;
     font-weight: 700;
     color: #1c1f27;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
   }
   .selected-date-display .relative-label {
     font-size: 14px;
@@ -2352,7 +2353,7 @@ function buildDangerPanel() {
     const dateList = makeDateList(days, color);
     return `
       <div style="border-bottom:1px solid #eef1f5;">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
           <span style="font-size:13px;color:${dim ? '#c2c8d2' : '#646b78'}">${label}</span>
           <div style="display:flex;align-items:center;gap:10px;">
             <span style="font-size:22px;font-weight:800;color:${dim ? '#d0d5dd' : color}">${count}</span>
