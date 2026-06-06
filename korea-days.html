@@ -20,6 +20,7 @@
     padding: 8px 24px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
     position: sticky;
     top: 0;
@@ -540,9 +541,10 @@
   }
   .tab-btn:hover { color: #2b3038; }
   .tab-btn.active { color: #1c1f27; border-bottom-color: #60a5fa; }
-  .hdr-left { display: flex; align-items: center; gap: 12px; flex: 1 1 0; min-width: 0; }
-  .hdr-actions { display: flex; gap: 6px; align-items: center; flex: 1 1 0; justify-content: flex-end; }
-  .hdr-today { margin: 0; flex: 0 0 auto; }
+  .hdr-left { display: flex; align-items: center; gap: 12px; flex: 0 1 auto; min-width: 0; }
+  .hdr-actions { display: flex; gap: 6px; align-items: center; flex: 0 0 auto; }
+  /* Today sits dead-center of the header, out of flow so the side zones keep their natural width */
+  .hdr-today { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; }
   .ghost-btn {
     padding: 4px 12px; border-radius: 6px; border: 1px solid #e3e6eb;
     background: none; color: #646b78; font-size: 12px; font-weight: 600;
@@ -731,7 +733,7 @@
   @media (max-width: 700px) {
     .header { flex-wrap: wrap; padding: 8px 16px; }
     .hdr-left, .hdr-actions { flex: 1 1 auto; min-width: 0; }
-    .hdr-today { margin: 0 auto; }
+    .hdr-today { position: static; transform: none; margin: 0 auto; }
     .status-card { flex-direction: column; }
     .status-col { padding: 20px 0; }
     .status-col + .status-col { border-left: none; border-top: 1px solid #e3e6eb; }
