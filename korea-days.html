@@ -770,9 +770,9 @@
   .week-block { border-bottom: 1px solid #eef1f5; }
   .week-block.is-future-week { background: #e8ebf0; }
   .week-block.is-future-week .week-head:hover { background: #dfe3ea; }
-  .week-block.is-future-week .location-kr,
-  .week-block.is-future-week .location-hk,
-  .week-block.is-future-week .location-other { background: transparent; }
+  /* On grey (future) cells, the flag chip matches the grey instead of showing a white box */
+  .dcell.is-future .location-kr, .dcell.is-future .location-hk, .dcell.is-future .location-other,
+  .drow.is-future .location-kr, .drow.is-future .location-hk, .drow.is-future .location-other { background: transparent; }
   .week-block.is-today > .week-head { background: rgba(59,130,246,0.06); }
   .week-head {
     display: flex; align-items: center; gap: 12px;
