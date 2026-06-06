@@ -540,6 +540,13 @@
   }
   .tab-btn:hover { color: #2b3038; }
   .tab-btn.active { color: #1c1f27; border-bottom-color: #60a5fa; }
+  .hdr-actions { display: flex; gap: 6px; align-items: center; margin-left: 14px; }
+  .ghost-btn {
+    padding: 4px 12px; border-radius: 6px; border: 1px solid #e3e6eb;
+    background: none; color: #646b78; font-size: 12px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+  }
+  .ghost-btn:hover { background: #eef1f5; color: #2b3038; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
@@ -878,6 +885,10 @@
     <button class="tab-btn" onclick="switchTab('stats', this)">📊 Annual Stats</button>
   </div>
   <span class="sub">182-day rolling cap · Trailing 365 days</span>
+  <div class="hdr-actions" id="hdrActions">
+    <button onclick="setAllWeeks(true)" class="ghost-btn">⊞ Expand all</button>
+    <button onclick="setAllWeeks(false)" class="ghost-btn">⊟ Collapse all</button>
+  </div>
 </div>
 
 <div id="panel-daily" class="tab-panel active">
@@ -910,13 +921,6 @@
 </div>
 
 <div class="table-section">
-  <div class="table-header">
-    <span class="table-title" id="tableTitle">By week</span>
-    <div style="display:flex;gap:4px;">
-      <button onclick="setAllWeeks(true)" style="padding:4px 12px;border-radius:6px;border:1px solid #e3e6eb;background:none;color:#646b78;font-size:12px;font-weight:600;cursor:pointer;">⊞ Expand all</button>
-      <button onclick="setAllWeeks(false)" style="padding:4px 12px;border-radius:6px;border:1px solid #e3e6eb;background:none;color:#646b78;font-size:12px;font-weight:600;cursor:pointer;">⊟ Collapse all</button>
-    </div>
-  </div>
   <div class="table-wrap">
     <div class="table-scroll" id="tableScroll">
       <div id="weeksContainer"></div>
@@ -1969,8 +1973,6 @@ document.getElementById('datePicker').addEventListener('change', e => {
 });
 
 function initRender() {
-  document.getElementById('tableTitle').textContent =
-    'By week · click a day to set its country · ▸ expand a week for detail';
   renderHero(selectedDate);
   buildDangerPanel();
   buildWeeks();
@@ -2469,6 +2471,7 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('hdrActions').style.display = name === 'daily' ? '' : 'none';
   if (name === 'stats') {
     buildStatsPanel();
   }
