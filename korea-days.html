@@ -540,7 +540,9 @@
   }
   .tab-btn:hover { color: #2b3038; }
   .tab-btn.active { color: #1c1f27; border-bottom-color: #60a5fa; }
-  .hdr-actions { display: flex; gap: 6px; align-items: center; margin-left: 14px; }
+  .hdr-left { display: flex; align-items: center; gap: 12px; flex: 1 1 0; min-width: 0; }
+  .hdr-actions { display: flex; gap: 6px; align-items: center; flex: 1 1 0; justify-content: flex-end; }
+  .hdr-today { margin: 0; flex: 0 0 auto; }
   .ghost-btn {
     padding: 4px 12px; border-radius: 6px; border: 1px solid #e3e6eb;
     background: none; color: #646b78; font-size: 12px; font-weight: 600;
@@ -728,8 +730,8 @@
   /* ── Responsive ── */
   @media (max-width: 700px) {
     .header { flex-wrap: wrap; padding: 8px 16px; }
-    .header .sub { display: none; }
-    .tabs { margin-left: auto; }
+    .hdr-left, .hdr-actions { flex: 1 1 auto; min-width: 0; }
+    .hdr-today { margin: 0 auto; }
     .status-card { flex-direction: column; }
     .status-col { padding: 20px 0; }
     .status-col + .status-col { border-left: none; border-top: 1px solid #e3e6eb; }
@@ -885,13 +887,15 @@
 </div>
 
 <div class="header">
-  <span style="font-size:22px">🇰🇷</span>
-  <h1>Korea Days Tracker</h1>
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('daily', this)">📅 Daily View</button>
-    <button class="tab-btn" onclick="switchTab('stats', this)">📊 Annual Stats</button>
+  <div class="hdr-left">
+    <span style="font-size:22px">🇰🇷</span>
+    <h1>Korea Days Tracker</h1>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('daily', this)">📅 Daily View</button>
+      <button class="tab-btn" onclick="switchTab('stats', this)">📊 Annual Stats</button>
+    </div>
   </div>
-  <span class="sub">182-day rolling cap · Trailing 365 days</span>
+  <button class="cal-today-btn hdr-today" id="hdrToday" onclick="calGoToday()">Today</button>
   <div class="hdr-actions" id="hdrActions">
     <button onclick="setAllWeeks(true)" class="ghost-btn">⊞ Expand all</button>
     <button onclick="setAllWeeks(false)" class="ghost-btn">⊟ Collapse all</button>
@@ -908,7 +912,6 @@
     <div class="cal-strip" id="calStrip"></div>
     <div class="cal-arrow cal-arrow-right" onclick="calScroll(1)">›</div>
   </div>
-  <button class="cal-today-btn" onclick="calGoToday()">Today</button>
 
   <div class="status-card" id="statusCard">
     <div class="status-col status-context">
@@ -2745,7 +2748,9 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
-  document.getElementById('hdrActions').style.display = name === 'daily' ? '' : 'none';
+  const onDaily = name === 'daily';
+  document.getElementById('hdrActions').style.display = onDaily ? '' : 'none';
+  document.getElementById('hdrToday').style.display = onDaily ? '' : 'none';
   if (name === 'stats') {
     buildStatsPanel();
   }
