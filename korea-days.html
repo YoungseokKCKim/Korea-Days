@@ -71,6 +71,12 @@
     gap: 10px;
   }
   .status-hero .status-badge { align-self: center; }
+  .status-context { display: flex; flex-direction: column; justify-content: center; }
+  .hero-num { display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .metric-caption {
+    font-size: 13px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #7a818f; text-align: left; line-height: 1.15;
+  }
   .status-right {
     display: flex;
     flex-direction: column;
@@ -109,7 +115,7 @@
     font-size: 28px;
     font-weight: 700;
     color: #1c1f27;
-    margin-bottom: 12px;
+    margin-bottom: 0;
   }
   .selected-date-display .relative-label {
     font-size: 14px;
@@ -917,12 +923,13 @@
 
   <div class="status-card" id="statusCard">
     <div class="status-col status-context">
-      <div class="selected-date-label">Trailing 365-day window ending</div>
       <div class="selected-date-display" id="heroDate">–</div>
     </div>
     <div class="status-col status-hero">
-      <div class="metric-label">Days Remaining</div>
-      <div class="metric-value days-left" id="heroDaysLeft">–</div>
+      <div class="hero-num">
+        <div class="metric-value days-left" id="heroDaysLeft">–</div>
+        <div class="metric-caption">Days<br>remaining</div>
+      </div>
       <div class="status-badge" id="heroBadge">
         <div class="status-dot"></div>
         <span id="heroBadgeText">–</span>
@@ -2643,7 +2650,6 @@ function buildDangerPanel() {
   }
 
   panel.innerHTML = `
-    <div class="danger-title">⚠️ Next 365 days · days remaining in cap</div>
     ${row('danger-10', daysCaution.length, '&lt; 10 remaining (caution)', '#eab308', daysCaution)}
     ${row('danger-5',  daysWarning.length, '&lt; 5 remaining (warning)',  '#f97316', daysWarning)}
     ${row('danger-0',  daysOver.length,    'At or over the cap',          '#ef4444', daysOver)}`;
