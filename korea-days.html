@@ -768,6 +768,8 @@
 
   /* ── Merged week accordion (Daily/Weekly in one view) ── */
   .week-block { border-bottom: 1px solid #eef1f5; }
+  .week-block.is-future-week { background: #e8ebf0; }
+  .week-block.is-future-week .week-head:hover { background: #dfe3ea; }
   .week-block.is-today > .week-head { background: rgba(59,130,246,0.06); }
   .week-head {
     display: flex; align-items: center; gap: 12px;
@@ -1671,7 +1673,8 @@ function buildWeeks() {
           : `−${Math.ceil((TODAY_NUM - dateToNum(last.dateStr)) / 7)}wk`);
 
     const block = document.createElement('div');
-    block.className = 'week-block' + (openWeeks.has(wk.key) ? ' open' : '') + (containsToday ? ' is-today' : '');
+    const isFutureWeek = !containsToday && dateToNum(first.dateStr) > TODAY_NUM;
+    block.className = 'week-block' + (openWeeks.has(wk.key) ? ' open' : '') + (containsToday ? ' is-today' : '') + (isFutureWeek ? ' is-future-week' : '');
     block.dataset.wk = wk.key;
 
     const head = document.createElement('div');
