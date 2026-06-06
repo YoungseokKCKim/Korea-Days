@@ -497,9 +497,9 @@
     cursor: pointer; padding: 0 2px;
   }
   #dangerPopover .dp-body { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
-  /* Past = confirmed (white) · Future = TBD (soft grey) · today keeps its own highlight */
-  .cal-day.is-past, .dcell.is-past, .drow.is-past { background: #ffffff; }
-  .cal-day.is-future, .dcell.is-future, .drow.is-future { background: #e8ebf0; }
+  /* Forward-looking: Future = emphasized (white) · Past = de-emphasized (soft grey) · today keeps its own highlight */
+  .cal-day.is-future, .dcell.is-future, .drow.is-future { background: #ffffff; }
+  .cal-day.is-past, .dcell.is-past, .drow.is-past { background: #e8ebf0; }
   .picker-title {
     font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
     color: #9099a6; padding: 2px 6px 6px; border-bottom: 1px solid #e3e6eb;
@@ -768,11 +768,11 @@
 
   /* ── Merged week accordion (Daily/Weekly in one view) ── */
   .week-block { border-bottom: 1px solid #eef1f5; }
-  .week-block.is-future-week { background: #e8ebf0; }
-  .week-block.is-future-week .week-head:hover { background: #dfe3ea; }
-  /* On grey (future) cells, the flag chip matches the grey instead of showing a white box */
-  .dcell.is-future .location-kr, .dcell.is-future .location-hk, .dcell.is-future .location-other,
-  .drow.is-future .location-kr, .drow.is-future .location-hk, .drow.is-future .location-other { background: transparent; }
+  .week-block.is-past-week { background: #e8ebf0; }
+  .week-block.is-past-week .week-head:hover { background: #dfe3ea; }
+  /* On grey (past) cells, the flag chip matches the grey instead of showing a white box */
+  .dcell.is-past .location-kr, .dcell.is-past .location-hk, .dcell.is-past .location-other,
+  .drow.is-past .location-kr, .drow.is-past .location-hk, .drow.is-past .location-other { background: transparent; }
   .week-block.is-today > .week-head { background: rgba(59,130,246,0.06); }
   .week-head {
     display: flex; align-items: center; gap: 12px;
@@ -1676,8 +1676,8 @@ function buildWeeks() {
           : `−${Math.ceil((TODAY_NUM - dateToNum(last.dateStr)) / 7)}wk`);
 
     const block = document.createElement('div');
-    const isFutureWeek = !containsToday && dateToNum(first.dateStr) > TODAY_NUM;
-    block.className = 'week-block' + (openWeeks.has(wk.key) ? ' open' : '') + (containsToday ? ' is-today' : '') + (isFutureWeek ? ' is-future-week' : '');
+    const isPastWeek = !containsToday && dateToNum(last.dateStr) < TODAY_NUM;
+    block.className = 'week-block' + (openWeeks.has(wk.key) ? ' open' : '') + (containsToday ? ' is-today' : '') + (isPastWeek ? ' is-past-week' : '');
     block.dataset.wk = wk.key;
 
     const head = document.createElement('div');
