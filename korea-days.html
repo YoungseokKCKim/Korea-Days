@@ -557,6 +557,16 @@
     cursor: pointer; white-space: nowrap;
   }
   .ghost-btn:hover { background: #eef1f5; color: #2b3038; }
+  /* Day-count mode selector */
+  .mode-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+  .mode-bar-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #7a818f; font-weight: 700; }
+  .mode-seg { display: inline-flex; background: #eef1f5; border: 1px solid #e3e6eb; border-radius: 8px; padding: 2px; gap: 2px; }
+  .mode-opt {
+    background: none; border: none; border-radius: 6px; padding: 4px 12px;
+    font-size: 12px; font-weight: 600; color: #7a818f; cursor: pointer; white-space: nowrap;
+  }
+  .mode-opt:hover { color: #2b3038; }
+  .mode-opt.active { background: #ffffff; color: #1c1f27; box-shadow: 0 1px 2px rgba(0,0,0,0.12); }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
@@ -912,6 +922,13 @@
 
 <div id="panel-daily" class="tab-panel active">
 <div class="hero">
+  <div class="mode-bar" id="modeBar">
+    <span class="mode-bar-label">Day-count</span>
+    <div class="mode-seg">
+      <button class="mode-opt active" data-mode="include" onclick="setCountMode('include', this)" title="Counts both the arrival and departure day (matches your Excel / records)">Include arrival day</button>
+      <button class="mode-opt" data-mode="exclude" onclick="setCountMode('exclude', this)" title="Counts from the day after arrival through departure — 소득세법 시행령 제4조">Exclude arrival day · 세법</button>
+    </div>
+  </div>
   <div class="controls">
     <input type="date" id="datePicker">
   </div>
@@ -1141,15 +1158,21 @@ for (const t of OTHER_TRIPS) {
 }
 for (const t of KR_TRIPS_NUMS) for (let d = t.s; d <= t.e; d++) LOCATION_MAP.set(d, {country: 'KR', note: ''});
 
+// Day-count method:
+//   'include' = arrival day counted (inclusive — matches the Excel/your records)
+//   'exclude' = count from the day AFTER arrival, per 소득세법 시행령 제4조 (입국 다음날~출국일)
+let COUNT_MODE = 'include';
+
 // Count Korea days in trailing window ending on dayNum.
-// Matches spreadsheet exactly: window = [dayNum-365, dayNum], sums per-trip overlap.
-// (This intentionally double-counts Jan 2 2026 which spans two trips, matching the source.)
+// window = [dayNum-365, dayNum], sums per-trip overlap.
 // Overrides: if a day is overridden, it adds/removes from the base trip-overlap count.
 function countKrDays(dayNum) {
   const winStart = dayNum - 365;
   let count = 0;
   for (const t of KR_TRIPS_NUMS) {
-    const ovStart = Math.max(t.s, winStart);
+    // 'exclude' (세법): start counting the day after arrival, so the arrival day isn't counted
+    const tripStart = (COUNT_MODE === 'exclude') ? t.s + 1 : t.s;
+    const ovStart = Math.max(tripStart, winStart);
     const ovEnd   = Math.min(t.e, dayNum);
     if (ovStart <= ovEnd) count += ovEnd - ovStart + 1;
   }
@@ -2259,6 +2282,8 @@ document.getElementById('datePicker').addEventListener('change', e => {
 });
 
 function initRender() {
+  try { COUNT_MODE = localStorage.getItem('countMode') || 'include'; } catch (e) { COUNT_MODE = 'include'; }
+  document.querySelectorAll('.mode-opt').forEach(b => b.classList.toggle('active', b.dataset.mode === COUNT_MODE));
   renderHero(selectedDate);
   buildDangerPanel();
   buildWeeks();
@@ -2303,6 +2328,17 @@ function renumberTrips() {
     counts[t.year] = (counts[t.year] || 0) + 1;
     t.num = counts[t.year];
   }
+}
+
+function setCountMode(mode) {
+  COUNT_MODE = mode;
+  try { localStorage.setItem('countMode', mode); } catch (e) {}
+  document.querySelectorAll('.mode-opt').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  computeAllRows();
+  renderHero(selectedDate);
+  buildDangerPanel();
+  buildWeeks();
+  buildCalStrip();
 }
 
 function rebuildFromTrips() {
